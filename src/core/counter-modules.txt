@@ -1,0 +1,164 @@
+- Insel: Client, Version, Nutzer und Uhrzeit in einer Glas-Pille
+- FPS: Zeigt deine Bilder pro Sekunde
+- CPS: Zeigt deine Klicks pro Sekunde
+- Ping: Zeigt deine Latenz zum Server
+- Toggle Sprint: Einmal Sprint drücken und weiter sprinten
+- Zoom: Flüssiger Zoom (Standardtaste: C)
+- No Hurt Cam: Entfernt das Wackeln bei Schaden
+- Rüstungsanzeige: Zeigt deine Rüstung und Haltbarkeit
+- Keystrokes: Zeigt WASD-, Maus- und Sprung-Eingaben
+- Koordinaten: Zeigt Position und Blickrichtung
+- Blickrichtung: Himmelsrichtung, in die du schaust
+- Rotation: Yaw- und Pitch-Winkel
+- Lichtlevel: Licht an deinen Füßen, rot wenn Mobs spawnen können
+- Ziel-Block: Name des Blocks, den du ansiehst
+- XP-Level: Zeigt dein Erfahrungslevel
+- Rüstungspunkte: Gesamte Rüstungsstärke
+- Fallhöhe: Wie weit du gefallen bist
+- Spieler online: Anzahl der Spieler auf dem Server
+- Sichtweite: Deine Sichtweite in Chunks
+- Todes-Zähler: Zählt deine Tode in dieser Sitzung
+- Auto-Respawn: Respawnt dich automatisch
+- Koordinaten kopieren: Die Modul-Taste kopiert deine Position
+- Chat-Hervorhebung: Hebt Nachrichten hervor, die dich erwähnen
+- FOV-Changer: Eigenes Sichtfeld und kein Sprint-FOV-Zoom
+- HUD ausblenden: Die Modul-Taste blendet alle Counter-Kacheln aus
+- Todespunkt: Merkt sich, wo du gestorben bist
+- Beitritts-Befehl: Führt nach dem Beitritt einen Befehl aus
+- Server-IP kopieren: Die Modul-Taste kopiert die Server-Adresse
+- Im Hintergrund stumm: Schaltet das Spiel stumm, wenn du rausgehst
+- Weiterlaufen: Keine Auto-Pause, wenn das Fenster den Fokus verliert
+- Moment-Animationen: Banner und Effekte für Biome, Wetter, Respawn, Combos, Level-Ups
+- Kampf-Statistik: Treffer, Trefferquote, Kills, Tode und beste Combo dieser Sitzung
+- Kill-Feed: Kill-Feed im Glas-Stil aus den Todesmeldungen
+- Trank-Effekte: Aktive Effekte mit Restzeit
+- Ziel-Anzeige: Leben, Rüstung und Abstand deines Gegners
+- Kompass: Eine horizontale Kompassleiste
+- Item-Zähler: Zählt Pfeile, Perlen, Totems und Goldäpfel
+- Tempo: Zeigt, wie schnell du dich bewegst
+- Combo: Zählt Treffer am Stück
+- Reichweite: Distanz deines letzten Treffers
+- Arbeitsspeicher: Zeigt die RAM-Auslastung
+- Server-IP: Zeigt, auf welchem Server du bist
+- Spielzeit: Wie lange du schon spielst
+- Uhr: Die aktuelle Uhrzeit als Kachel
+- Biom: Zeigt dein aktuelles Biom
+- Fadenkreuz: Komplett anpassbares Fadenkreuz
+- Fullbright: Alles sehen, auch in Höhlen
+- Kein Wetter: Blendet Regen und Gewitter aus
+- Wenig Feuer: Senkt das Feuer im Bild ab
+- Wenig Leben: Roter Puls bei wenig Leben
+- Freelook: Linke Alt drücken zum freien Umsehen
+- Benachrichtigungen: Glas-Hinweise bei Aktionen
+- Leben im Namen: Zeigt das Leben neben Namen
+- Hitboxen: Zeigt die Hitboxen von Wesen
+- Bogen-Spannung: Ring zeigt, wie weit der Bogen gespannt ist
+- Kill-Effekte: Effekte, wenn dein Ziel stirbt
+- Treffer-Partikel: Mehr Partikel bei jedem Treffer
+- Block-Umrandung: Farbe und Dicke der Block-Umrandung
+- Eigener Name: Eigenen Namen in der 3. Person sehen
+- FPS-Boost: Mehr FPS: Culling, Hintergrund-Limit, sparsame Optionen
+- Sättigung: Zeigt deine versteckte Sättigung
+- TPS: Geschätzte Server-Tickrate
+- FPS-Graph: Live-FPS-Diagramm mit Min/Schnitt/Max
+- Chat-Zeitstempel: Uhrzeit vor jeder Chat-Nachricht
+- Schnell-Chat: Die Modul-Taste sendet Nachricht 1, zwei weitere Tasten für mehr
+- Waffen- & Rüstungs-FX: Partikel-Skins: Spuren bei Schwerthieben und Glanz um deine Rüstung
+- Tageszähler: Zeigt den Ingame-Tag
+- Entity-Zähler: Lebewesen im Umkreis von 32 Blöcken
+- Haltbarkeit: Verbleibende Haltbarkeit des Items in der Hand
+- Treffer-Markierung: Ein kleines X am Fadenkreuz, wenn du triffst
+- Haltbarkeits-Warnung: Warnt dich, wenn Werkzeug oder Rüstung bald kaputtgeht
+- Freunde & Counter-Nutzer: Icon bei anderen Counter-Nutzern + Freundesliste (ohne Plugin)
+- Glas-Inventare: Inventar, Kisten und andere Container im Glas-Look des Clients
+- Discord-Status: Zeigt in Discord, was du spielst. Braucht deine eigene Discord-Application-ID
+- Musik-Anzeige: Zeigt den Song, den Windows gerade abspielt (Spotify, Browser ...)
+- Mini-Map: Karte der Umgebung mit Spielern, Mobs und Wegpunkten
+- Wegpunkte: Modul-Taste setzt einen Wegpunkt
+- Item-Physik: Items liegen flach statt sich zu drehen
+- Hand-Ansicht: Position, Größe und Schlagtempo des Items
+- Trefferfarbe: Farbe des Aufblitzens bei Treffern
+- Uhrzeit: Eigene Tageszeit (nur für dich)
+- Klare Sicht: Weiter sehen unter Wasser, in Lava, ohne Nebel
+- Chunk-Grenzen: Zeigt Chunk-Grenzen wie F3+G
+- Partikel: Weniger Partikel, ohne Explosionen
+- Bossbar: Bossbar ausblenden, verschieben, verkleinern
+- Scoreboard: Ausblenden, verkleinern, ohne rote Zahlen
+- Tab-Ping: Ping als farbige Zahl in der Tab-Liste
+- Inventar-Blur: Welt hinter Inventaren verschwimmt
+- Totem-Zähler: Zählt verbrauchte Totems pro Spieler
+- Schadenszahlen: Schwebende Zahlen bei Schaden
+- Cooldowns: Cooldowns von Perle, Apfel, Windkugel, Schild
+- Auto-GG: Schreibt gg am Rundenende
+- Paket-Anzeige: Zeigt aktive Ressourcenpakete
+- Chat-Extras: Stapeln, Rechtsklick kopieren, Verlauf, Emojis
+- Namen verbergen: Ersetzt deinen Namen für Streams/Videos
+- Vorschauen: Shulker-/Kartenvorschau, Haltbarkeit als Zahl
+- Aktive Module: Liste aktiver Module mit Verlauf und Leuchten
+- Flugbahn: Zeigt, wo Pfeile, Perlen und Tränke landen
+- Radar: Spieler in der Nähe mit Entfernung und Leben
+- Inventar-HUD: Dein Inventar auf dem Bildschirm
+- Totem-Warnung: Warnt, wenn kein Totem in der Hand ist
+- Krit-Anzeige: Stern am Fadenkreuz, wenn dein Schlag kritisch wird
+- Angriffs-Leiste: Angriffs-Cooldown unter dem Fadenkreuz
+- Herzschlag: Herzschlag-Sound bei wenig Leben
+- Luft: Verbleibende Luft unter Wasser
+- Hand: Name des Items in deiner Hand
+- Chunk: Der Chunk, in dem du stehst
+- Modus: Dein aktueller Spielmodus
+- Dimension: Die Dimension, in der du bist
+- Schwierigkeit: Die Schwierigkeit der Welt
+- Frame: Zeit pro Bild in Millisekunden
+- Leben: Deine Lebenspunkte
+- Hunger: Dein Hunger-Level
+- Haltung: Gehen, Sprinten, Schleichen, Schwimmen oder Fliegen
+- Frei: Freie Inventarplätze
+- Zweithand: Name des Items in der Zweithand
+- Ziel: Name des Wesens, das du ansiehst
+- Vertikal: Vertikale Geschwindigkeit in Blöcken pro Sekunde
+- Punkte: Dein Punktestand
+- Effekte: Anzahl aktiver Trank-Effekte
+- Werkzeug: Verbleibende Nutzungen des Werkzeugs in der Hand
+- Stapel: Größe des Stapels in der Hand
+- Angriff: Angriffs-Abklingzeit in Prozent
+- Nächster: Abstand zum nächsten anderen Spieler
+- Fenster: Größe des Spielfensters in Pixeln
+- GUI: Aktuelle GUI-Skalierung
+- Java: Java-Version, auf der das Spiel läuft
+- CPU: CPU-Threads, die dem Spiel zur Verfügung stehen
+- Mods: Anzahl geladener Mods
+- Name: Dein Spielername
+- Online: Spieler online auf dem Server
+- Datum: Das heutige Datum
+- Wetter: Regen oder Gewitter in der Welt
+- Sicht: Sichtweite in Chunks
+- Kamera: Aktuelle Kameraperspektive
+- Fahrzeug: Name des Fahrzeugs, auf dem du reitest
+- Unten: Block unter deinen Füßen
+- Helm: Haltbarkeit deines Helms
+- Brust: Haltbarkeit deines Brustpanzers
+- Beine: Haltbarkeit deiner Hose
+- Schuhe: Haltbarkeit deiner Schuhe
+- Max. Leben: Dein maximales Leben
+- Absorption: Gelbe Absorptions-Herzen
+- Feuer: Sekunden, die du noch brennst
+- Frost: Gefrier-Fortschritt im Pulverschnee
+- Tempo: Dein Bewegungstempo-Wert
+- Schaden: Dein Angriffsschaden-Wert
+- Reichweite: Block-Reichweite
+- Nether: Deine Position durch 8 für Portale
+- Gelaufen: Seit dem Beitritt gelaufene Strecke
+- Ticks: Spiel-Ticks seit dem Beitritt
+- Ziel-Leben: Leben des Wesens, das du ansiehst
+- Empfindlichkeit: Maus-Empfindlichkeit
+- FOV: Deine FOV-Einstellung
+- Max. FPS: Bildraten-Limit
+- Sprache: Sprachcode des Spiels
+- Bessere Animationen: Punchy!-Animationen in der Ich-Perspektive (Launcher installiert die Mod, wirkt nach Neustart)
+- Spielzeit: Wie lange das Spiel schon offen ist
+- Stapel droppen: Seine Taste droppt den ganzen Stapel in deiner Hand
+- Rahmenloser Vollbildmodus: Vollbild ohne exklusiven Modus, Alt-Tab geht sofort
+- Verlassen bestätigen: Verlangt einen zweiten Klick, bevor du Welt oder Server verlässt
+- Tetris: Spiel Tetris direkt im Menü
+- Pong: Klassisches Pong gegen den Computer
+- Auto-Reconnect: Tritt nach einem Verbindungsabbruch automatisch wieder bei

@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' https: data: clmedia:; media-src 'self' clmedia:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'none'">
+  <title>Counter Launcher</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="console.css">
+  <link rel="stylesheet" href="labs.css">
+  <link rel="stylesheet" href="v2.css">
+</head>
+<body>
+  <canvas id="sky"></canvas>
+  <div id="light"></div>
+  <header id="titlebar">
+    <div class="brand"><div class="mark">C</div></div>
+    <div class="crumbs" id="crumbs"></div>
+    <div class="drag"></div>
+    <div id="status" class="status"></div>
+    <div class="win-buttons">
+      <button data-win="min" title="Minimieren">&#8211;</button>
+      <button data-win="max" title="Maximieren">&#9633;</button>
+      <button data-win="close" class="close" title="Schließen">&#10005;</button>
+    </div>
+  </header>
+
+  <nav id="rail">
+    <button class="nav active" data-page="home"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span class="tip">Start</span></button>
+    <button class="nav" data-page="browse"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span class="tip">Entdecken</span></button>
+    <button class="nav" data-page="import"><svg viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v3h16v-3"/></svg><span class="tip">Importieren</span></button>
+    <div class="spacer"></div>
+    <button class="nav" data-page="accounts"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg><span class="tip">Konten</span></button>
+    <button class="nav" data-page="settings"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg><span class="tip">Einstellungen</span></button>
+  </nav>
+
+  <aside id="library">
+    <div class="lib-head"><h3>Bibliothek</h3><button class="btn sm" id="new-instance" title="Neue Instanz">+ Neu</button></div>
+    <div class="lib-search"><input id="lib-filter" placeholder="Instanzen filtern"></div>
+    <div class="lib-list" id="lib-list"></div>
+    <div class="lib-foot" id="lib-account"></div>
+  </aside>
+
+  <main id="content"></main>
+
+  <div id="console" class="console hidden"><div class="console-head"><span>Spiel-Konsole</span><button class="btn sm ghost" id="console-close">Schließen</button></div><pre id="console-log"></pre></div>
+  <div id="modal-root"></div>
+  <div id="toasts"></div>
+  <div id="drop-hint" class="hidden"><div>Loslassen, um die Dateien zur Instanz hinzuzufügen</div></div>
+
+  <script src="effects.js"></script>
+  <script src="app.js"></script>
+  <script src="features.js"></script>
+  <script src="vendor/skinview3d.bundle.js"></script>
+  <script src="console.js"></script>
+  <script src="more.js"></script>
+  <script src="scenes.js"></script>
+  <script src="scenes2.js"></script>
+  <script src="backgrounds.js"></script>
+  <script src="mascot.js"></script>
+  <script src="labs.js"></script>
+  <script src="labs2.js"></script>
+  <script src="labs3.js"></script>
+  <script src="skills.js"></script>
+  <script src="assistant.js"></script>
+  <script src="v2.js"></script>
+</body>
+</html>

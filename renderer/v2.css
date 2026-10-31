@@ -1,0 +1,95 @@
+/* Counter 2.0: new look + motion layer. Active while <body> has the class "v2" (Design setting "Counter 2.0"). */
+body.v2 {
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --glow: color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+/* ---- animated aurora behind everything */
+body.v2::before {
+  content: ""; position: fixed; inset: -20%; z-index: 0; pointer-events: none; opacity: 0.55;
+  background:
+    radial-gradient(40% 35% at 20% 25%, color-mix(in srgb, var(--accent) 38%, transparent), transparent 70%),
+    radial-gradient(35% 40% at 80% 20%, color-mix(in srgb, var(--accent-2, #29d3ff) 30%, transparent), transparent 70%),
+    radial-gradient(45% 40% at 55% 85%, color-mix(in srgb, var(--accent) 25%, transparent), transparent 70%);
+  filter: blur(40px); animation: v2-aurora 28s ease-in-out infinite alternate;
+}
+@keyframes v2-aurora { 0% { transform: translate3d(-3%, -2%, 0) rotate(0deg) scale(1); } 50% { transform: translate3d(4%, 3%, 0) rotate(8deg) scale(1.12); } 100% { transform: translate3d(-2%, 5%, 0) rotate(-6deg) scale(1.05); } }
+body.v2 #titlebar, body.v2 #rail, body.v2 #library, body.v2 #content { position: relative; z-index: 1; }
+
+/* ---- rail: floating pill with a sliding indicator */
+body.v2 #rail { background: color-mix(in srgb, var(--rail) 78%, transparent); backdrop-filter: blur(18px); border-right-color: transparent; }
+body.v2 .nav { border-radius: 14px; transition: color 0.2s, background 0.25s var(--ease), transform 0.3s var(--spring); }
+body.v2 .nav:hover { transform: scale(1.12) rotate(-3deg); }
+body.v2 .nav:active { transform: scale(0.9); }
+body.v2 .nav.active { background: color-mix(in srgb, var(--accent) 22%, var(--s2)); box-shadow: 0 0 22px -4px var(--glow); }
+body.v2 .nav.active::before { display: none; }
+body.v2 .nav svg { transition: transform 0.35s var(--spring); }
+body.v2 .nav.active svg { transform: scale(1.1); }
+body.v2 #rail-ind { position: absolute; left: 0; width: 3px; height: 22px; border-radius: 0 4px 4px 0; background: var(--accent); box-shadow: 0 0 12px var(--accent); transition: top 0.45s var(--spring), opacity 0.2s; pointer-events: none; }
+body.v2 .nav .tip { transition: opacity 0.2s, transform 0.3s var(--spring); }
+
+/* ---- title bar and brand */
+body.v2 #titlebar { background: transparent; border-bottom-color: color-mix(in srgb, var(--line) 50%, transparent); }
+body.v2 .brand .mark { background: linear-gradient(135deg, var(--accent), var(--accent-2, #29d3ff)); box-shadow: 0 0 16px -2px var(--glow); animation: v2-mark 6s ease-in-out infinite; }
+@keyframes v2-mark { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(8deg) scale(1.08); } }
+
+/* ---- glass panels with a gradient border that lights up */
+body.v2 .panel, body.v2 .result, body.v2 .preset, body.v2 .banner {
+  border-color: transparent; position: relative;
+  background-image: linear-gradient(var(--panel-bg, color-mix(in srgb, var(--s1) 70%, transparent)), var(--panel-bg, color-mix(in srgb, var(--s1) 70%, transparent))),
+    linear-gradient(135deg, color-mix(in srgb, var(--accent) 35%, var(--line)), var(--line) 45%, color-mix(in srgb, var(--accent-2, #29d3ff) 28%, var(--line)));
+  background-origin: border-box; background-clip: padding-box, border-box;
+  transition: transform 0.35s var(--ease), box-shadow 0.35s var(--ease), border-color 0.3s;
+}
+body.v2 .panel:hover, body.v2 .result:hover, body.v2 .preset:hover { box-shadow: 0 14px 40px -14px var(--glow); }
+body.v2 .tile { transition: transform 0.35s var(--spring), box-shadow 0.35s var(--ease); }
+
+/* ---- buttons: gradient, shine, springy press */
+body.v2 .btn { transition: transform 0.25s var(--spring), background 0.2s, box-shadow 0.3s, border-color 0.2s; position: relative; overflow: hidden; }
+body.v2 .btn:hover { transform: translateY(-1px); }
+body.v2 .btn:active { transform: scale(0.95); }
+body.v2 .btn.primary, body.v2 .btn.play { background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 60%, var(--accent-2, #29d3ff))); box-shadow: 0 8px 24px -8px var(--glow); }
+body.v2 .btn.primary::after, body.v2 .btn.play::after { content: ""; position: absolute; inset: 0; background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.32) 50%, transparent 65%); transform: translateX(-130%); animation: v2-shine 4.5s ease-in-out infinite; pointer-events: none; }
+@keyframes v2-shine { 55%, 100% { transform: translateX(130%); } }
+body.v2 .btn.play { animation: v2-breathe 3.2s ease-in-out infinite; }
+@keyframes v2-breathe { 50% { box-shadow: 0 8px 34px -4px var(--glow); } }
+
+/* ---- tabs and segmented controls: sliding highlight */
+body.v2 .tabs { position: relative; border-bottom-color: transparent; }
+body.v2 .tabs button { border-bottom-color: transparent !important; transition: color 0.2s; }
+body.v2 .tabs .v2-ind { position: absolute; bottom: 0; height: 2px; border-radius: 2px; background: linear-gradient(90deg, var(--accent), var(--accent-2, #29d3ff)); box-shadow: 0 0 10px var(--glow); transition: left 0.45s var(--spring), width 0.45s var(--spring); }
+body.v2 .seg button { transition: background 0.25s var(--ease), color 0.2s; }
+
+/* ---- library list */
+body.v2 #library { background: color-mix(in srgb, var(--s1) 72%, transparent); backdrop-filter: blur(16px); border-right-color: transparent; }
+body.v2 .lib-item { transition: background 0.2s, transform 0.3s var(--spring); }
+body.v2 .lib-item:hover { transform: translateX(4px); }
+body.v2 .lib-item.active { background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 24%, var(--s3)), var(--s3)); box-shadow: inset 2px 0 0 var(--accent); }
+
+/* ---- inputs */
+body.v2 input, body.v2 select, body.v2 textarea { transition: border-color 0.2s, box-shadow 0.3s var(--ease), background 0.2s; }
+body.v2 input:focus, body.v2 select:focus, body.v2 textarea:focus { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 28%, transparent); }
+
+/* ---- modals, toasts, pages */
+body.v2 .modal { animation: v2-modal 0.45s var(--spring) both; backdrop-filter: blur(18px); }
+@keyframes v2-modal { from { opacity: 0; transform: translateY(24px) scale(0.92) rotateX(8deg); filter: blur(6px); } }
+body.v2 .toast { animation: v2-toast 0.5s var(--spring) both; }
+@keyframes v2-toast { from { opacity: 0; transform: translateX(60px) scale(0.9); } }
+body.v2 #content > * { animation: v2-page 0.5s var(--ease) both; }
+@keyframes v2-page { from { opacity: 0; transform: translateY(14px); filter: blur(4px); } }
+
+/* ---- scroll reveal (v2.js adds .v2-in once an element is visible) */
+body.v2 .v2-reveal { opacity: 0; transform: translateY(18px) scale(0.98); }
+body.v2 .v2-reveal.v2-in { opacity: 1; transform: none; transition: opacity 0.6s var(--ease), transform 0.7s var(--spring); transition-delay: var(--d, 0ms); }
+
+/* ---- cursor ripple + floating particles */
+.v2-wave { position: absolute; border-radius: 50%; background: rgba(255, 255, 255, 0.35); transform: scale(0); animation: v2-wave 0.7s var(--ease, ease-out) forwards; pointer-events: none; }
+@keyframes v2-wave { to { transform: scale(1); opacity: 0; } }
+#v2-dust { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+
+/* ---- reduced motion / animations off */
+body.no-motion.v2::before, body.no-motion.v2 .brand .mark, body.no-motion.v2 .btn::after, body.no-motion.v2 .btn.play { animation: none !important; }
+body.no-motion.v2 #content > *, body.no-motion.v2 .modal, body.no-motion.v2 .toast { animation: none !important; }
+body.no-motion.v2 .v2-reveal { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { body.v2::before { animation: none; } }

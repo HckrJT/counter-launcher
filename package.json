@@ -1,0 +1,68 @@
+{
+  "name": "counter-launcher",
+  "productName": "Counter Launcher",
+  "version": "1.20.0",
+  "description": "Launcher for the Counter client: instances, mods from Modrinth, imports from other launchers",
+  "main": "main.js",
+  "author": "HckrJT & Taptup",
+  "license": "UNLICENSED",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test tests/labs.test.js tests/providers.test.js tests/labs2.test.js",
+    "dist": "electron-builder --win nsis",
+    "release": "electron-builder --win nsis --publish always"
+  },
+  "dependencies": {
+    "adm-zip": "0.5.16",
+    "electron-updater": "^6.3.9"
+  },
+  "devDependencies": {
+    "electron": "33.2.1",
+    "electron-builder": "25.1.8",
+    "skinview3d": "^3.1.0"
+  },
+  "build": {
+    "appId": "de.astraxsmp.counter.launcher",
+    "productName": "Counter Launcher",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "src/**/*",
+      "renderer/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "bundled",
+        "to": "bundled",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "renderer/icon.png",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "shortcutName": "Counter Launcher",
+      "createDesktopShortcut": "always",
+      "createStartMenuShortcut": true,
+      "runAfterFinish": true
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "HckrJT",
+        "repo": "counter-launcher",
+        "releaseType": "release"
+      }
+    ]
+  }
+}
