@@ -712,9 +712,11 @@ function aiChain() {
   const order = ['ollama', 'gemini', 'mistral', 'cerebras', 'nvidia', 'openrouter', 'groq', ...(process.env.CL_AI_TEST_URL ? ['mock'] : [])];
   const pick = st.aiProvider && st.aiProvider !== 'auto' ? st.aiProvider : null;
   const chain = [];
+  if (pick === 'proxy-openrouter' && aiProxy.url) chain.push({ id: 'proxy-openrouter', key: 'proxy:openrouter' });
+  if (pick === 'proxy' && aiProxy.url) chain.push({ id: 'proxy', key: 'proxy' });
   if (pick && pick !== 'proxy' && keys[pick]) chain.push({ id: pick, key: keys[pick] });
   for (const id of order) if (keys[id] && !chain.some((c) => c.id === id)) chain.push({ id, key: keys[id] });
-  if (aiProxy.url && (pick === 'proxy' || !chain.length || st.aiShareFallback !== false)) chain.push({ id: 'proxy', key: 'proxy' });
+  if (aiProxy.url && (!chain.length || (pick !== 'proxy-openrouter' && pick !== 'proxy' && st.aiShareFallback !== false))) chain.push({ id: 'proxy', key: 'proxy' });
   return chain;
 }
 handle('ai:ask', async (history, instId, auto, goal, prefs) => {
@@ -767,10 +769,14 @@ handle('ai:providers', () => {
   const st = store.get().settings;
   const have = { ...(st.aiKeys || {}) };
   if (st.groqKey && !have.groq) have.groq = st.groqKey;
-  return { list: assistant.providerList().map((p) => ({ ...p, hasKey: p.id === 'proxy' ? !!aiProxy.url : !!have[p.id] })), selected: st.aiProvider || 'auto', shareFallback: st.aiShareFallback !== false };
+  const shared = aiProxy.url ? [
+    { id: 'proxy', name: 'Counter AI · Groq (geteilt)', note: 'Geteilter Counter-Server mit dem Cloudflare-Groq-Schlüssel.', keyUrl: '', hint: '', hasKey: true },
+    { id: 'proxy-openrouter', name: 'Counter AI · OpenRouter (geteilt)', note: 'Geteilter Counter-Server mit dem Cloudflare-OpenRouter-Schlüssel.', keyUrl: '', hint: '', hasKey: true },
+  ] : [];
+  return { list: [...shared, ...assistant.providerList().map((p) => ({ ...p, hasKey: !!have[p.id] }))], selected: st.aiProvider || 'auto', shareFallback: st.aiShareFallback !== false };
 });
 handle('ai:setKey', async (id, key) => {
-  if (!assistant.PROVIDERS[id] || id === 'proxy') throw new Error('Unbekannter Anbieter');
+  if (!assistant.PROVIDERS[id] || id === 'proxy' || id === 'proxy-openrouter') throw new Error('Unbekannter Anbieter');
   const st = store.get().settings;
   st.aiKeys = { ...(st.aiKeys || {}) };
   key = String(key || '').trim();

@@ -10,6 +10,9 @@
   <link rel="stylesheet" href="styles.css?v=3">
 </head>
 <body>
+  <div class="cursor-glow" aria-hidden="true"></div>
+  <div class="cursor-ring" aria-hidden="true"></div>
+  <canvas id="particle-field" aria-hidden="true"></canvas>
   <div class="page-glow page-glow-one" aria-hidden="true"></div>
   <div class="page-glow page-glow-two" aria-hidden="true"></div>
 
@@ -81,6 +84,23 @@
         <article class="feature-card reveal"><div class="feature-icon blue">⌕</div><span class="card-kicker">02 · MODS</span><h3>Mods direkt<br>im Launcher.</h3><p>Modrinth durchsuchen, installieren und Updates prüfen, ohne den Launcher zu wechseln.</p><div class="card-visual search-visual"><span>⌕</span><b>Mods und Packs suchen</b><i>↗</i></div></article>
         <article class="feature-card reveal"><div class="feature-icon green">✦</div><span class="card-kicker">03 · WERKZEUGE</span><h3>Probleme finden,<br>bevor sie nerven.</h3><p>Gesundheitscheck, Backups, Importer und Counter-Werkzeuge sind dort, wo deine Instanz ist.</p><div class="card-visual ai-visual"><span class="ai-avatar">✓</span><span>Instanz geprüft</span><i>bereit</i></div></article>
         <article class="feature-card feature-card-wide feature-card-accent reveal"><div class="feature-icon orange">◒</div><span class="card-kicker">04 · DESIGN</span><h3>Der Counter-Look<br>bleibt im Spiel.</h3><p>Aurora-Hintergründe, klare Module und ein Interface, das nicht nach Standard-Launcher aussieht.</p><div class="accent-lines" aria-hidden="true"><i></i><i></i><i></i><i></i></div></article>
+      </div>
+    </section>
+
+    <section class="game-section section-shell section-block" id="ingame">
+      <div class="section-heading reveal">
+        <p class="eyebrow">Counter im Spiel</p>
+        <h2>Information,<br><em>wo sie hingehört.</em></h2>
+        <p>Der gleiche Look läuft weiter, wenn Minecraft startet: klare Module, kleine Abstände, keine überladene Oberfläche.</p>
+      </div>
+      <div class="game-preview reveal" data-tilt>
+        <div class="game-sky"><span class="game-cloud cloud-a"></span><span class="game-cloud cloud-b"></span><span class="game-moon"></span><span class="game-star star-a"></span><span class="game-star star-b"></span></div>
+        <div class="game-hud hud-top"><span class="hud-brand">COUNTER <b>1.15.0</b></span><span class="hud-status">● 60 FPS</span></div>
+        <div class="game-hud hud-left"><span><b>POSITION</b> 124 / 72 / -38</span><span><b>BIOME</b> Forest</span><span><b>TIME</b> 14:32</span></div>
+        <div class="game-hud hud-right"><span class="health">♥ ♥ ♥ ♥ ♥ ♥ ♥ ♥ ♥ ♥</span><span class="armor">▰ ▰ ▰ ▰ ▰ ▰ ▰ ▰ ▰ ▰</span><span class="hud-quest">COUNTER MODULES <b>12 / 24</b></span></div>
+        <div class="game-crosshair">+</div>
+        <div class="game-hotbar"><span class="slot selected">◇</span><span class="slot">▧</span><span class="slot">◈</span><span class="slot">▣</span><span class="slot">◌</span><span class="slot">◒</span><span class="slot">▦</span><span class="slot">◉</span><span class="slot">◫</span></div>
+        <div class="game-caption"><span>COUNTER MOD</span><strong>Dein HUD. Deine Regeln.</strong><i>26.1.2 · Fabric</i></div>
       </div>
     </section>
 

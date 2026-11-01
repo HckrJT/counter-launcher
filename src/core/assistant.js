@@ -13,6 +13,8 @@ const studio = require('./studio');
 // as a secret so it never ships with the launcher
 const PROXY = require('./ai-proxy');
 const PROXY_KEY = 'proxy';
+const PROXY_OPENROUTER_KEY = 'proxy:openrouter';
+const isProxyKey = (key) => key === PROXY_KEY || key === PROXY_OPENROUTER_KEY;
 let turnId = '';
 
 /**
@@ -69,7 +71,10 @@ let QUICK = false;
 const provider = () => PROVIDERS[CUR] || PROVIDERS.groq;
 
 function endpoint(key, pathPart) {
-  if (key === PROXY_KEY) return { url: PROXY.url.replace(/\/$/, '') + pathPart, headers: { 'X-Counter-Client': PROXY.client, 'X-Counter-User': PROXY.user(), ...(turnId ? { 'X-Counter-Turn': turnId } : {}) } };
+  if (isProxyKey(key)) {
+    const sharedProvider = key === PROXY_OPENROUTER_KEY ? 'openrouter' : 'groq';
+    return { url: PROXY.url.replace(/\/$/, '') + pathPart, headers: { 'X-Counter-Client': PROXY.client, 'X-Counter-User': PROXY.user(), 'X-Counter-Provider': sharedProvider, ...(turnId ? { 'X-Counter-Turn': turnId } : {}) } };
+  }
   const P = provider();
   if (P.local) {
     const base = /^https?:\/\//i.test(key) ? key.replace(/\/+$/, '').replace(/\/v1$/, '') : 'http://localhost:11434';
@@ -230,7 +235,7 @@ async function groqOnce(key, body) {
     e.limit = true;
     e.wait = parseFloat(res.headers.get('retry-after') || '') || 8;
     // the Counter AI worker's own limit per player (not Groq's per model)
-    e.proxy = key === PROXY_KEY && /kurz warten/i.test(apiError.message || '');
+    e.proxy = isProxyKey(key) && /kurz warten/i.test(apiError.message || '');
     if (e.proxy && !res.headers.get('retry-after')) e.wait = 12;
     throw e;
   }
@@ -379,7 +384,7 @@ async function loadModels(key) {
   const P = provider();
   const clean = (id) => String(id).replace(/^models\//, '');
   let usable = list.filter((m) => !/embed|rerank|tts|whisper|speech|audio|image|moderation|guard|ocr|robotics|live|vision-only|safety/i.test(m.id));
-  if (CUR === 'openrouter') usable = usable.filter((m) => /:free$/.test(m.id) && (m.supported_parameters || []).includes('tools'));
+  if (CUR === 'openrouter' || CUR === 'proxy-openrouter') usable = usable.filter((m) => /:free$/.test(m.id) && (m.supported_parameters || []).includes('tools'));
   if (CUR === 'mistral') usable = usable.filter((m) => !m.capabilities || (m.capabilities.completion_chat && m.capabilities.function_calling));
   if (CUR === 'gemini') usable = usable.filter((m) => /gemini-/.test(m.id) && !/lite|gemma/.test(m.id) || /flash-lite/.test(m.id));
   ids = usable.map((m) => clean(m.id));
@@ -392,13 +397,13 @@ async function loadModels(key) {
     const rank = (id) => { const i = (P.prefer || []).findIndex((re) => re.test(id)); return i < 0 ? 99 : i; };
     order = [...ids].sort((a, b) => rank(a) - rank(b));
   }
-  if (CUR === 'openrouter' && !ids.includes('openrouter/free')) { ids.push('openrouter/free'); order.push('openrouter/free'); }
+  if ((CUR === 'openrouter' || CUR === 'proxy-openrouter') && !ids.includes('openrouter/free')) { ids.push('openrouter/free'); order.push('openrouter/free'); }
   if (!order.length) throw new Error(`${P.name} bietet mit diesem Schlüssel gerade kein passendes Modell an`);
   modelCache = { key: cacheKey, at: Date.now(), ids, best: order[0], order, vision: P.vision ? order[0] : null, search: null };
   return modelCache;
 }
 async function models(key, providerId) {
-  CUR = providerId || (key === PROXY_KEY || !key ? 'proxy' : 'groq');
+  CUR = providerId || (key === PROXY_OPENROUTER_KEY ? 'proxy-openrouter' : key === PROXY_KEY || !key ? 'proxy' : 'groq');
   const m = await loadModels(key || (PROXY.url ? PROXY_KEY : ''));
   return { ids: m.ids.filter((id) => !/compound/.test(id)), best: m.best, vision: !!m.vision, search: !!m.search, reasoning: m.ids.filter((id) => REASONING.test(id)), provider: CUR };
 }
@@ -528,8 +533,8 @@ const PREF_DEFAULTS = { think: 'deep', tone: 'friendly', length: 'normal', emoji
  * takes over. chain = [{id, key}], default: the shared Counter AI (or the old single Groq key).
  */
 async function ask(opts) {
-  let chain = opts.chain && opts.chain.length ? opts.chain : [{ id: opts.key && opts.key !== PROXY_KEY ? 'groq' : 'proxy', key: opts.key || PROXY_KEY }];
-  if (!PROXY.url) chain = chain.filter((c) => c.id !== 'proxy');
+  let chain = opts.chain && opts.chain.length ? opts.chain : [{ id: opts.key && !isProxyKey(opts.key) ? 'groq' : (opts.key === PROXY_OPENROUTER_KEY ? 'proxy-openrouter' : 'proxy'), key: opts.key || PROXY_KEY }];
+  if (!PROXY.url) chain = chain.filter((c) => !String(c.id).startsWith('proxy'));
   if (!chain.length) throw new Error('NO_KEY');
   let lastError;
   for (const [i, c] of chain.entries()) {
@@ -551,7 +556,7 @@ async function ask(opts) {
 
 async function askOnce({ key, model, history, ctx, env, auto, goal, prefs = {}, onStatus = () => {} }) {
   const p = { ...PREF_DEFAULTS, ...prefs };
-  key = key || (PROXY.url ? PROXY_KEY : '');
+  key = key || (CUR === 'proxy-openrouter' ? PROXY_OPENROUTER_KEY : PROXY.url ? PROXY_KEY : '');
   // all requests of this question count as one for the Counter AI worker's limit
   turnId = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
   if (!key) throw new Error('NO_KEY');
@@ -915,6 +920,6 @@ async function checkKey(id, key) {
 }
 
 /** providers for the settings page (no internals) */
-const providerList = () => Object.entries(PROVIDERS).filter(([id]) => id !== 'mock').map(([id, P]) => ({ id, name: P.name, note: P.note, keyUrl: P.keyUrl || '', hint: P.hint || '' }));
+const providerList = () => Object.entries(PROVIDERS).filter(([id]) => id !== 'mock' && id !== 'proxy').map(([id, P]) => ({ id, name: P.name, note: P.note, keyUrl: P.keyUrl || '', hint: P.hint || '' }));
 
 module.exports = { ask, models, PREF_DEFAULTS, fitBody, providerList, PROVIDERS, checkKey };

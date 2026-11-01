@@ -115,7 +115,7 @@ const AI_SUGGEST = [
   'Gib dem Launcher ein Sonnenuntergang-Design',
 ];
 
-const hasAnyAiKey = () => !!(state.settings.groqKey || Object.keys(state.settings.aiKeys || {}).length);
+const hasAnyAiKey = () => !!(state.settings.groqKey || Object.keys(state.settings.aiKeys || {}).length || state.aiShared);
 
 /** one card per AI provider: where to get the free key, key field, "main provider" choice */
 function providerPanel(onChange) {
@@ -133,7 +133,7 @@ function providerPanel(onChange) {
           h('div', { class: 'row' }, h('b', { class: 'grow' }, p.name), p.hasKey ? h('span', { class: 'tag g' }, p.id === 'proxy' ? 'immer da' : 'Schlüssel gespeichert') : null,
             p.hasKey ? h('label', { class: 'prov-main' }, h('input', { type: 'radio', name: 'prov-main', checked: main, onchange: async () => { await call(api.setSettings, { aiProvider: p.id }); toast(`${p.name} ist jetzt der Hauptanbieter`); onChange && onChange(); } }), 'Haupt') : null),
           h('div', { class: 'muted small' }, p.note),
-          p.id === 'proxy' ? null : h('div', { class: 'row', style: 'margin-top:6px' },
+          p.id.startsWith('proxy') ? null : h('div', { class: 'row', style: 'margin-top:6px' },
             p.keyUrl ? h('a', { href: '#', class: 'small', onclick: (e) => { e.preventDefault(); api.openExternal(p.keyUrl); } }, 'Gratis-Schlüssel holen ↗') : null, h('span', { class: 'grow' }),
             key,
             h('button', { class: 'btn sm primary', onclick: async (e) => {
@@ -884,10 +884,29 @@ async function assistantPage(view) {
   view.addEventListener('drop', (e) => { e.preventDefault(); e.stopPropagation(); view.classList.remove('drop'); addFiles([...e.dataTransfer.files]); }, true);
 
   const modelSel = h('select', { class: 'ai-model', title: 'Modell', onchange: (e) => { call(api.setSettings, { groqModel: e.target.value }); state.settings.groqModel = e.target.value; } }, h('option', { value: '' }, 'Bestes Modell (automatisch)'));
-  call(api.aiModels).then((m) => {
-    for (const id of m.ids) modelSel.append(h('option', { value: id }, id + ((m.reasoning || []).includes(id) ? ' · denkt' : '')));
-    modelSel.value = state.settings.groqModel || '';
+  const providerSel = h('select', { class: 'ai-model ai-provider-inline', title: 'KI-Anbieter' });
+  async function loadModels() {
+    modelSel.replaceChildren(h('option', { value: '' }, 'Bestes Modell (automatisch)'));
+    try {
+      const m = await call(api.aiModels);
+      for (const id of m.ids) modelSel.append(h('option', { value: id }, id + ((m.reasoning || []).includes(id) ? ' · denkt' : '')));
+      modelSel.value = state.settings.groqModel || '';
+    } catch {}
+  }
+  call(api.aiProviders).then((info) => {
+    providerSel.replaceChildren(
+      h('option', { value: 'auto' }, 'KI automatisch'),
+      ...info.list.map((p) => h('option', { value: p.id, disabled: !p.hasKey }, p.name + (p.hasKey ? '' : ' · nicht verfügbar'))),
+    );
+    providerSel.value = info.selected || 'auto';
   }).catch(() => {});
+  providerSel.addEventListener('change', async (e) => {
+    state.settings.aiProvider = e.target.value;
+    await call(api.setSettings, { aiProvider: e.target.value });
+    await loadModels();
+    drawHead();
+  });
+  loadModels();
 
   const skillsHost = h('div', { class: 'ai-studio-host hidden' });
   function openSkills() {
@@ -914,6 +933,7 @@ async function assistantPage(view) {
       h('div', { class: 'ai-av head' }, mascot(42)),
       h('div', { class: 'grow' }, h('h1', {}, aiName()), h('p', { class: 'sub' }, `${chat.title} · ${inst ? inst.name : 'keine Instanz'}`)),
       h('div', { class: 'seg', title: 'Denkstufe' }, THINK_LEVELS.map(([k, l, d]) => h('button', { class: aiPrefs.think === k ? 'on' : '', title: d, onclick: () => { aiPrefs.think = k; savePrefs(); drawHead(); } }, l))),
+      providerSel,
       h('button', { class: 'perm' + (aiAuto ? ' on' : ''), title: 'Darf der Assistent Änderungen ohne Nachfrage ausführen?', onclick: () => {
         aiAuto = !aiAuto;
         lsSet('cl.aiAuto', aiAuto);
