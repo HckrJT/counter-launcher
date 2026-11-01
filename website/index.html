@@ -6,8 +6,8 @@
   <meta name="theme-color" content="#090a12">
   <meta name="description" content="Counter ist dein Minecraft-Launcher für saubere Instanzen, Mods und den Counter-Look.">
   <title>Counter — Minecraft, aber auf deine Art.</title>
-  <link rel="icon" href="../renderer/icon.png">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="assets/counter-icon.png">
+  <link rel="stylesheet" href="styles.css?v=3">
 </head>
 <body>
   <div class="page-glow page-glow-one" aria-hidden="true"></div>
@@ -15,7 +15,7 @@
 
   <header class="site-header">
     <a class="brand" href="#top" aria-label="Counter Startseite">
-      <img src="../renderer/icon.png" alt="" width="42" height="42">
+      <img src="assets/counter-icon.png" alt="" width="42" height="42">
       <span>COUNTER</span>
     </a>
     <nav class="main-nav" aria-label="Hauptnavigation">
@@ -24,23 +24,24 @@
       <a href="#community">Community</a>
       <a href="#faq">FAQ</a>
     </nav>
-    <a class="button button-small button-ghost config-link" data-config-link="repo" href="#downloads">GitHub ansehen</a>
+    <a class="button button-small button-ghost config-link" data-config-link="download" href="#downloads">Download <span aria-hidden="true">↗</span></a>
   </header>
 
   <main id="top">
     <section class="hero section-shell">
+      <div class="hero-atmosphere" aria-hidden="true"><div class="hero-moon"></div><div class="hero-grid"></div><i></i><i></i><i></i><i></i><i></i><i></i></div>
       <div class="hero-copy reveal">
         <p class="eyebrow"><span class="eyebrow-dot"></span> Counter Launcher · aktuell für Windows</p>
-        <h1>Minecraft,<br><em>aber auf deine Art.</em></h1>
-        <p class="hero-lede">Ein aufgeräumter Launcher für deine Counter-Instanzen: Mods entdecken, Profile verwalten, Microsoft-Konto verbinden und direkt losspielen.</p>
+        <h1>Minecraft,<br><em>sauber gestartet.</em></h1>
+        <p class="hero-lede">Counter hält Instanzen, Mods und dein Microsoft-Konto an einem Ort. Weniger Ordner suchen. Mehr spielen.</p>
         <div class="hero-actions">
           <a class="button button-primary config-link" data-config-link="download" href="#downloads">
             <span>Launcher herunterladen</span>
             <span class="button-arrow" aria-hidden="true">↗</span>
           </a>
-          <a class="button button-ghost" href="#features">Was ist drin? <span aria-hidden="true">↓</span></a>
+          <a class="button button-ghost" href="#features">Features ansehen <span aria-hidden="true">↓</span></a>
         </div>
-        <p class="microcopy"><span class="status-dot"></span> Keine Fake-Links: Release-URL wird nach dem GitHub-Release ergänzt.</p>
+        <p class="microcopy"><span class="status-dot"></span> Windows-Release 1.20.7 · Microsoft Login · Modrinth</p>
       </div>
       <div class="hero-art reveal reveal-delay" aria-label="Vorschau der Counter Launcher Oberfläche">
         <div class="window-chrome">
@@ -71,25 +72,25 @@
 
     <section class="section-shell section-block" id="features">
       <div class="section-heading reveal">
-        <p class="eyebrow">Mehr als nur ein Startknopf</p>
-        <h2>Alles, was zwischen<br><em>„ich bau kurz was“</em> und 4 Uhr liegt.</h2>
-        <p>Counter bringt Ordnung in deine Minecraft-Welt, ohne dir vorzuschreiben, wie du spielen sollst.</p>
+        <p class="eyebrow">Was Counter kann</p>
+        <h2>Weniger Suchen.<br><em>Mehr Spielen.</em></h2>
+        <p>Ein Launcher für die Dinge, die du jedes Mal brauchst: Instanzen, Mods, Login und ein bisschen Ordnung.</p>
       </div>
       <div class="feature-grid">
-        <article class="feature-card feature-card-wide reveal"><div class="feature-icon purple">◈</div><span class="card-kicker">01 · INSTANZEN</span><h3>Setups, die du<br>verstehst.</h3><p>Verwalte mehrere Minecraft-Versionen, Loader und Mod-Profile übersichtlich an einem Ort. Öffnen, kopieren, wechseln — ohne Ordner-Chaos.</p><div class="card-visual stack-visual"><span>Counter Survival</span><span>Vanilla Experiments</span><span>Modded Friends</span></div></article>
-        <article class="feature-card reveal"><div class="feature-icon blue">⌕</div><span class="card-kicker">02 · MODS</span><h3>Entdecken.<br>Installieren. Spielen.</h3><p>Finde Modrinth-Inhalte direkt im Launcher und halte deine Instanzen unter Kontrolle.</p><div class="card-visual search-visual"><span>⌕</span><b>Suche nach Mods, Packs ...</b><i>↗</i></div></article>
-        <article class="feature-card reveal"><div class="feature-icon green">✦</div><span class="card-kicker">03 · COUNTER AI</span><h3>Hilfe, wenn<br>du sie brauchst.</h3><p>Von Modpack-Ideen bis zum Gesundheitscheck: die Counter-Werkzeuge sitzen dort, wo du sie brauchst.</p><div class="card-visual ai-visual"><span class="ai-avatar">C</span><span>Was möchtest du bauen?</span><i>•••</i></div></article>
-        <article class="feature-card feature-card-wide feature-card-accent reveal"><div class="feature-icon orange">◒</div><span class="card-kicker">04 · COUNTER-LOOK</span><h3>Dein Spiel.<br>Dein Interface.</h3><p>Der Counter-Look verbindet klare Information mit Aurora-Hintergründen, Glasflächen und kleinen Details, die sich nach dir anfühlen.</p><div class="accent-lines" aria-hidden="true"><i></i><i></i><i></i><i></i></div></article>
+        <article class="feature-card feature-card-wide reveal"><div class="feature-icon purple">◈</div><span class="card-kicker">01 · INSTANZEN</span><h3>Versionen und<br>Profile getrennt.</h3><p>Mehrere Minecraft-Versionen, Loader und Mod-Profile bleiben übersichtlich. Öffnen, kopieren, wechseln.</p><div class="card-visual stack-visual"><span>Counter Survival</span><span>Vanilla Experiments</span><span>Modded Friends</span></div></article>
+        <article class="feature-card reveal"><div class="feature-icon blue">⌕</div><span class="card-kicker">02 · MODS</span><h3>Mods direkt<br>im Launcher.</h3><p>Modrinth durchsuchen, installieren und Updates prüfen, ohne den Launcher zu wechseln.</p><div class="card-visual search-visual"><span>⌕</span><b>Mods und Packs suchen</b><i>↗</i></div></article>
+        <article class="feature-card reveal"><div class="feature-icon green">✦</div><span class="card-kicker">03 · WERKZEUGE</span><h3>Probleme finden,<br>bevor sie nerven.</h3><p>Gesundheitscheck, Backups, Importer und Counter-Werkzeuge sind dort, wo deine Instanz ist.</p><div class="card-visual ai-visual"><span class="ai-avatar">✓</span><span>Instanz geprüft</span><i>bereit</i></div></article>
+        <article class="feature-card feature-card-wide feature-card-accent reveal"><div class="feature-icon orange">◒</div><span class="card-kicker">04 · DESIGN</span><h3>Der Counter-Look<br>bleibt im Spiel.</h3><p>Aurora-Hintergründe, klare Module und ein Interface, das nicht nach Standard-Launcher aussieht.</p><div class="accent-lines" aria-hidden="true"><i></i><i></i><i></i><i></i></div></article>
       </div>
     </section>
 
     <section class="split-section section-shell section-block" id="account">
-      <div class="split-art reveal"><div class="login-card"><div class="login-logo"><img src="../renderer/icon.png" alt="" width="48" height="48"></div><span class="tiny-label">SICHER ANMELDEN</span><h3>Microsoft-Konto<br>verbinden.</h3><p>Der Launcher öffnet den offiziellen Microsoft-Gerätecode-Flow in deinem Browser.</p><div class="login-code"><span>ABCD</span><span>EFGH</span></div><small>microsoft.com/devicelogin</small><div class="login-check">✓ Login bereit für Minecraft Services</div></div></div>
-      <div class="split-copy reveal reveal-delay"><p class="eyebrow">Kein neues Konto nötig</p><h2>Ein Login.<br><em>Dein Minecraft.</em></h2><p>Counter nutzt dein bestehendes Microsoft-Konto. Die Anmeldung läuft über Microsoft, Tokens bleiben lokal geschützt und ein Client-Secret gehört nicht in den Launcher.</p><div class="check-list"><div><span>✓</span><p><strong>Offizieller Flow</strong><br>Microsoft, Xbox Live und Minecraft Services.</p></div><div><span>✓</span><p><strong>Lokaler Schutz</strong><br>Gespeicherte Sessions werden vom Betriebssystem geschützt.</p></div><div><span>!</span><p><strong>Wichtig</strong><br>Die Azure-App muss für Minecraft Services freigegeben sein.</p></div></div></div>
+      <div class="split-art reveal"><div class="login-card"><div class="login-logo"><img src="assets/counter-icon.png" alt="" width="48" height="48"></div><span class="tiny-label">ANMELDUNG</span><h3>Microsoft-Konto<br>verbinden.</h3><p>Der Launcher öffnet den offiziellen Microsoft-Gerätecode-Flow in deinem Browser.</p><div class="login-code"><span>ABCD</span><span>EFGH</span></div><small>microsoft.com/devicelogin</small><div class="login-check">✓ Login bereit für Minecraft Services</div></div></div>
+      <div class="split-copy reveal reveal-delay"><p class="eyebrow">Anmeldung</p><h2>Dein Microsoft-Konto.<br><em>Kein Umweg.</em></h2><p>Counter nutzt den offiziellen Gerätecode-Flow. Du meldest dich bei Microsoft an, nicht bei einem zusätzlichen Counter-Konto.</p><div class="check-list"><div><span>✓</span><p><strong>Offizieller Login</strong><br>Microsoft, Xbox Live und Minecraft Services.</p></div><div><span>✓</span><p><strong>Lokal gespeichert</strong><br>Sessions werden vom Betriebssystem geschützt.</p></div><div><span>!</span><p><strong>Einmalig nötig</strong><br>Die App-ID muss für Minecraft Services freigegeben sein.</p></div></div></div>
     </section>
 
     <section class="requirements-section section-shell section-block">
-      <div class="section-heading centered reveal"><p class="eyebrow">Bereit zum Start?</p><h2>Das brauchst du.</h2><p>Der erste Release ist bewusst fokussiert. Weitere Plattformen folgen, sobald sie sauber gebaut und getestet sind.</p></div>
+      <div class="section-heading centered reveal"><p class="eyebrow">Aktuell unterstützt</p><h2>Das brauchst du.</h2><p>Der erste öffentliche Build ist für Windows. Weitere Plattformen kommen erst, wenn die Builds zuverlässig sind.</p></div>
       <div class="requirements-grid">
         <div class="requirement reveal"><span class="requirement-number">01</span><strong>Windows 10/11</strong><span>Aktueller Installer als Windows-Setup</span></div>
         <div class="requirement reveal"><span class="requirement-number">02</span><strong>Minecraft Java</strong><span>Ein Microsoft-Konto mit Minecraft-Besitz</span></div>
@@ -99,12 +100,12 @@
     </section>
 
     <section class="community-banner section-shell reveal" id="community">
-      <div><p class="eyebrow">Counter Multiplayer</p><h2>Alleine starten.<br><em>Gemeinsam bleiben.</em></h2><p>Der Server ist der nächste Treffpunkt für Counter. Trag hier deine echte Adresse und Community-Links ein, sobald sie bereit sind.</p></div>
+      <div><p class="eyebrow">Counter Multiplayer</p><h2>Server und<br><em>Community.</em></h2><p>Der Bereich ist vorbereitet. Serveradresse und Discord kommen hier hinein, sobald sie öffentlich sind.</p></div>
       <div class="community-actions"><div class="server-address"><span class="status-dot"></span><span data-config-text="server">Serveradresse folgt</span><button class="copy-server" type="button" aria-label="Serveradresse kopieren">⧉</button></div><a class="button button-white config-link" data-config-link="discord" href="#community">Discord öffnen <span>↗</span></a></div>
     </section>
 
     <section class="faq-section section-shell section-block" id="faq">
-      <div class="section-heading reveal"><p class="eyebrow">Noch Fragen?</p><h2>Klarheit statt<br><em>Kleingedrucktem.</em></h2></div>
+      <div class="section-heading reveal"><p class="eyebrow">FAQ</p><h2>Die kurzen<br><em>Antworten.</em></h2></div>
       <div class="faq-list">
         <details class="faq-item reveal" open><summary>Ist Counter kostenlos? <span>+</span></summary><p>Der Launcher wird als eigenes Projekt veröffentlicht. Preis- und Lizenzdetails werden mit dem ersten öffentlichen Release festgelegt — hier wird nichts behauptet, was noch nicht entschieden ist.</p></details>
         <details class="faq-item reveal"><summary>Kann ich meine bestehenden Instanzen importieren? <span>+</span></summary><p>Ja. Der Launcher enthält Importer für gängige Launcher-Strukturen. Prüfe beim Wechsel trotzdem deine Welten und Backups, bevor du alte Installationen entfernst.</p></details>
@@ -114,11 +115,11 @@
     </section>
 
     <section class="download-section section-shell section-block" id="downloads">
-      <div class="download-panel reveal"><div><p class="eyebrow">Counter Launcher</p><h2>Dein nächstes<br><em>Minecraft-Setup</em> wartet.</h2><p>Release-Link, Repository und Community werden hier angeschlossen, sobald die letzten Veröffentlichungs-Schritte erledigt sind.</p></div><div class="download-actions"><a class="button button-primary config-link" data-config-link="download" href="#downloads">Release-Link eintragen <span>↗</span></a><a class="text-link config-link" data-config-link="repo" href="#downloads">Zum Repository <span>→</span></a></div></div>
+      <div class="download-panel reveal"><div><p class="eyebrow">Counter Launcher 1.20.7</p><h2>Einmal laden.<br><em>Dann spielen.</em></h2><p>Der Windows-Installer liegt im GitHub Release. Updates kommen später direkt über den Launcher.</p></div><div class="download-actions"><a class="button button-primary config-link" data-config-link="download" href="#downloads">Windows-Installer <span>↗</span></a><a class="text-link config-link" data-config-link="repo" href="#downloads">GitHub-Repository <span>→</span></a></div></div>
     </section>
 
     <section class="ops-section section-shell section-block" id="checklist">
-      <div class="ops-heading"><p class="eyebrow">Für den öffentlichen Start</p><h2>Was jetzt noch fehlt.</h2><p>Diese Punkte sind absichtlich sichtbar: Damit aus einer schönen Seite ein verlässlicher Download wird.</p></div>
+      <div class="ops-heading"><p class="eyebrow">Stand</p><h2>Was schon<br><em>bereit ist.</em></h2><p>Ein kleiner Überblick für alle, die wissen wollen, wie Counter veröffentlicht wird.</p></div>
       <div class="ops-list">
         <div class="ops-row"><span class="ops-state open">01</span><div><strong>Azure / Minecraft App-ID</strong><p>App-ID und Minecraft-Services-Freigabe in Azure/Minecraft prüfen.</p></div><span class="ops-label">OFFEN</span></div>
         <div class="ops-row"><span class="ops-state done">02</span><div><strong>Launcher-Login</strong><p>Gebündelter Microsoft-Login ist im master-basierten Stand enthalten.</p></div><span class="ops-label done-label">ENTHALTEN</span></div>
@@ -130,13 +131,13 @@
   </main>
 
   <footer class="site-footer section-shell">
-    <a class="brand" href="#top"><img src="../renderer/icon.png" alt="" width="34" height="34"><span>COUNTER</span></a>
+    <a class="brand" href="#top"><img src="assets/counter-icon.png" alt="" width="34" height="34"><span>COUNTER</span></a>
     <p>Ein Launcher. Viele Wege zu spielen.</p>
     <div><a href="#features">Features</a><a href="#faq">FAQ</a><a href="#checklist">Launch-Checkliste</a></div>
     <small>© <span id="year"></span> Counter · Kein offizieller Mojang/Microsoft-Dienst.</small>
   </footer>
 
   <div class="toast" role="status" aria-live="polite"></div>
-  <script src="app.js"></script>
+  <script src="app.js?v=3"></script>
 </body>
 </html>

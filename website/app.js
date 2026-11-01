@@ -3,8 +3,8 @@
  * community are ready. Empty values intentionally keep the related CTA local.
  */
 const COUNTER_CONFIG = {
-  download: '',
-  repo: '',
+  download: 'https://github.com/HckrJT/counter-launcher/releases/latest/download/Counter-Launcher-Setup-1.20.7.exe',
+  repo: 'https://github.com/HckrJT/counter-launcher',
   discord: '',
   server: '',
 };
@@ -55,3 +55,17 @@ document.querySelector('.copy-server')?.addEventListener('click', async () => {
 });
 
 document.querySelector('#year').textContent = new Date().getFullYear();
+
+const atmosphere = document.querySelector('.hero-atmosphere');
+if (atmosphere && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  const count = 18;
+  for (let index = 0; index < count; index += 1) {
+    const star = document.createElement('b');
+    star.className = 'hero-star';
+    star.style.setProperty('--x', `${Math.random() * 100}%`);
+    star.style.setProperty('--y', `${Math.random() * 100}%`);
+    star.style.setProperty('--delay', `${Math.random() * 8}s`);
+    star.style.setProperty('--size', `${1 + Math.random() * 2.5}px`);
+    atmosphere.append(star);
+  }
+}
