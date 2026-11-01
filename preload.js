@@ -69,7 +69,6 @@ contextBridge.exposeInMainWorld('counter', {
   aiApply: call('ai:apply'),
   aiModels: call('ai:models'),
   aiProviders: call('ai:providers'),
-  aiSetKey: call('ai:setKey'),
   customModules: call('mods:list'),
   customModuleDelete: call('mods:delete'),
   customModuleCode: call('mods:code'),

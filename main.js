@@ -572,7 +572,7 @@ handle('bg:useShader', async (name) => {
   }
   return setVideo(b.file);
 });
-// KI-Assistent (Groq, Schlüssel des Nutzers)
+// KI-Assistent über die geteilten Counter AI-Provider
 const assistant = require('./src/core/assistant');
 const studio = require('./src/core/studio');
 const aiProxy = require('./src/core/ai-proxy');
@@ -702,22 +702,15 @@ async function buildFromProjects(info, status) {
   return { id: inst.id, name: inst.name, installed: ok.length, failed };
 }
 /**
- * Providers to try, best first: the one chosen in the studio (if it has a key), then every other provider with a key
- * (strongest first), the old Groq key, and last the shared Counter AI. When one is used up the next takes over.
+ * The launcher uses the shared Counter AI providers only. The worker keeps the
+ * provider keys server-side, so no user key is required or stored locally.
  */
 function aiChain() {
   const st = store.get().settings;
-  const keys = { ...(st.aiKeys || {}) };
-  if (st.groqKey && !keys.groq) keys.groq = st.groqKey;
-  const order = ['ollama', 'gemini', 'mistral', 'cerebras', 'nvidia', 'openrouter', 'groq', ...(process.env.CL_AI_TEST_URL ? ['mock'] : [])];
   const pick = st.aiProvider && st.aiProvider !== 'auto' ? st.aiProvider : null;
-  const chain = [];
-  if (pick === 'proxy-openrouter' && aiProxy.url) chain.push({ id: 'proxy-openrouter', key: 'proxy:openrouter' });
-  if (pick === 'proxy' && aiProxy.url) chain.push({ id: 'proxy', key: 'proxy' });
-  if (pick && pick !== 'proxy' && keys[pick]) chain.push({ id: pick, key: keys[pick] });
-  for (const id of order) if (keys[id] && !chain.some((c) => c.id === id)) chain.push({ id, key: keys[id] });
-  if (aiProxy.url && (!chain.length || (pick !== 'proxy-openrouter' && pick !== 'proxy' && st.aiShareFallback !== false))) chain.push({ id: 'proxy', key: 'proxy' });
-  return chain;
+  if (!aiProxy.url) return [];
+  if (pick === 'proxy-openrouter') return [{ id: 'proxy-openrouter', key: 'proxy:openrouter' }];
+  return [{ id: 'proxy', key: 'proxy' }, ...(st.aiShareFallback === false ? [] : [{ id: 'proxy-openrouter', key: 'proxy:openrouter' }])];
 }
 handle('ai:ask', async (history, instId, auto, goal, prefs) => {
   const s = store.get();
@@ -767,39 +760,11 @@ handle('ai:models', () => {
 });
 handle('ai:providers', () => {
   const st = store.get().settings;
-  const have = { ...(st.aiKeys || {}) };
-  if (st.groqKey && !have.groq) have.groq = st.groqKey;
   const shared = aiProxy.url ? [
     { id: 'proxy', name: 'Counter AI · Groq (geteilt)', note: 'Geteilter Counter-Server mit dem Cloudflare-Groq-Schlüssel.', keyUrl: '', hint: '', hasKey: true },
     { id: 'proxy-openrouter', name: 'Counter AI · OpenRouter (geteilt)', note: 'Geteilter Counter-Server mit dem Cloudflare-OpenRouter-Schlüssel.', keyUrl: '', hint: '', hasKey: true },
   ] : [];
-  return { list: [...shared, ...assistant.providerList().map((p) => ({ ...p, hasKey: !!have[p.id] }))], selected: st.aiProvider || 'auto', shareFallback: st.aiShareFallback !== false };
-});
-handle('ai:setKey', async (id, key) => {
-  if (!assistant.PROVIDERS[id] || id === 'proxy' || id === 'proxy-openrouter') throw new Error('Unbekannter Anbieter');
-  const st = store.get().settings;
-  st.aiKeys = { ...(st.aiKeys || {}) };
-  key = String(key || '').trim();
-  if (!key) {
-    delete st.aiKeys[id];
-    if (id === 'groq') st.groqKey = '';
-  } else {
-    if (id !== 'ollama' && (key.length < 15 || /\s/.test(key))) throw new Error('Das sieht nicht wie ein Schlüssel aus');
-    if (id === 'ollama' && !/^https?:\/\//i.test(key)) key = 'ollama';
-    // check it right away: a wrong key is reported here and not in the middle of a question
-    st.aiKeys[id] = key;
-    try {
-      const m = await assistant.models(key, id);
-      if (!m.ids.length) throw new Error('Keine Modelle');
-      await assistant.checkKey(id, key);
-    } catch (e) {
-      delete st.aiKeys[id];
-      throw new Error(e.badKey || /Schlüssel/.test(e.message) ? e.message : `Der Schlüssel funktioniert nicht (${e.message})`);
-    }
-    if (id === 'groq') st.groqKey = key;
-  }
-  store.save();
-  return true;
+  return { list: shared, selected: st.aiProvider || 'auto', shareFallback: st.aiShareFallback !== false };
 });
 handle('server:ping', (address) => social.ping(address));
 handle('servers:known', () => social.knownServers());

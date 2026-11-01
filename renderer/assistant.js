@@ -115,57 +115,25 @@ const AI_SUGGEST = [
   'Gib dem Launcher ein Sonnenuntergang-Design',
 ];
 
-const hasAnyAiKey = () => !!(state.settings.groqKey || Object.keys(state.settings.aiKeys || {}).length || state.aiShared);
-
-/** one card per AI provider: where to get the free key, key field, "main provider" choice */
+/** Shared Counter providers. Keys stay on the Counter server. */
 function providerPanel(onChange) {
   const box = h('div', { class: 'prov-list' });
   const draw = async () => {
     const info = await call(api.aiProviders);
     box.replaceChildren(
       h('div', { class: 'prov-auto' }, h('label', { class: 'ai-tog' }, h('input', { type: 'checkbox', checked: info.shareFallback, onchange: async (e) => { await call(api.setSettings, { aiShareFallback: e.target.checked }); } }),
-        h('span', {}, 'Wenn alle meine Anbieter voll sind, den geteilten Counter-Server als Reserve nutzen'))),
+        h('span', {}, 'Wenn der gewählte Anbieter voll ist, automatisch den anderen Counter-Anbieter nutzen'))),
       ...info.list.map((p) => {
-        const key = h('input', { type: 'password', placeholder: p.hint ? `Schlüssel (${p.hint})` : 'Schlüssel', class: 'grow', autocomplete: 'off' });
-        const msg = h('div', { class: 'small', style: 'min-height:14px' });
         const main = info.selected === p.id || (info.selected === 'auto' && false);
         return h('div', { class: 'prov-card' + (p.hasKey ? ' on' : '') },
-          h('div', { class: 'row' }, h('b', { class: 'grow' }, p.name), p.hasKey ? h('span', { class: 'tag g' }, p.id === 'proxy' ? 'immer da' : 'Schlüssel gespeichert') : null,
+          h('div', { class: 'row' }, h('b', { class: 'grow' }, p.name), h('span', { class: 'tag g' }, 'bereit'),
             p.hasKey ? h('label', { class: 'prov-main' }, h('input', { type: 'radio', name: 'prov-main', checked: main, onchange: async () => { await call(api.setSettings, { aiProvider: p.id }); toast(`${p.name} ist jetzt der Hauptanbieter`); onChange && onChange(); } }), 'Haupt') : null),
           h('div', { class: 'muted small' }, p.note),
-          p.id.startsWith('proxy') ? null : h('div', { class: 'row', style: 'margin-top:6px' },
-            p.keyUrl ? h('a', { href: '#', class: 'small', onclick: (e) => { e.preventDefault(); api.openExternal(p.keyUrl); } }, 'Gratis-Schlüssel holen ↗') : null, h('span', { class: 'grow' }),
-            key,
-            h('button', { class: 'btn sm primary', onclick: async (e) => {
-              const b = e.currentTarget;
-              b.disabled = true;
-              msg.textContent = 'Prüfe …';
-              try {
-                await call(api.aiSetKey, p.id, key.value);
-                await refresh();
-                toast(`${p.name}: gespeichert`);
-                onChange && onChange();
-                draw();
-              } catch (err) {
-                msg.textContent = err.message;
-                msg.style.color = '#ff9aac';
-              }
-              b.disabled = false;
-            } }, 'Speichern'),
-            p.hasKey ? h('button', { class: 'btn sm ghost danger', onclick: async () => { await call(api.aiSetKey, p.id, ''); await refresh(); draw(); onChange && onChange(); } }, 'Entfernen') : null),
-          msg);
+          h('div', { class: 'small muted' }, 'Kein eigener API-Schlüssel nötig – Counter stellt den Zugang bereit.'));
       }));
   };
   draw();
   return box;
-}
-
-function aiKeySetup(view) {
-  view.append(h('div', { class: 'ai-setup panel' },
-    h('div', { class: 'ai-av big' }, mascot(80)),
-    h('h2', {}, `${aiName()} einrichten`),
-    h('p', { class: 'muted' }, 'Der Assistent braucht einen kostenlosen KI-Schlüssel. Google Gemini ist das stärkste Gratis-Modell – du kannst auch mehrere Anbieter eintragen, dann springt der nächste ein, wenn einer voll ist.'),
-    providerPanel(() => { if (hasAnyAiKey()) render(); })));
 }
 
 // ---------------------------------------------------------------- attachments
@@ -474,7 +442,7 @@ function aiStudio(onClose) {
       h('button', { class: 'btn sm ghost', onclick: () => confirmModal('Alle KI-Einstellungen zurücksetzen? (Chats und Gedächtnis bleiben)', () => { aiPrefs = { ...AI_PREF_DEFAULTS }; savePrefs(); applyAiLook(); onClose(true); }) }, 'Zurücksetzen'),
       h('button', { class: 'btn sm primary', onclick: () => onClose() }, 'Fertig')),
     h('div', { class: 'ai-studio-body' },
-      section('🔌 Anbieter & Schlüssel', h('p', { class: 'muted small' }, 'Je stärker das Modell, desto schlauer der Assistent. Gemini ist am besten, die Reihenfolge bei mehreren Schlüsseln: Hauptanbieter, dann die übrigen, zuletzt der geteilte Counter-Server.'), providerPanel(() => {})),
+      section('🔌 Counter AI', h('p', { class: 'muted small' }, 'Wähle zwischen dem geteilten Groq- und OpenRouter-Zugang. Beide laufen über Counter – eigene API-Schlüssel werden nicht benötigt.'), providerPanel(() => {})),
       section('🧠 Denken',
         field('Denkstufe', seg('think', THINK_LEVELS)),
         h('p', { class: 'muted small' }, 'Maximal und Ultra brauchen länger und mehr vom Gratis-Limit, prüfen aber jede Antwort ein zweites Mal gegen die echten Ergebnisse. Ultra plant vorher und arbeitet am längsten.'),
@@ -515,7 +483,6 @@ function applyAiLook() {
 // ---------------------------------------------------------------- page
 async function assistantPage(view) {
   view.classList.add('ai-page');
-  if (!hasAnyAiKey() && !state.aiShared) return aiKeySetup(view);
   const inst = instById(state.selectedInstance) || sortInstances(state.instances)[0];
   if (window.aiPending && curChat().messages.length) {
     const c = newChat();
