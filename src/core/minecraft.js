@@ -349,7 +349,7 @@ async function launch(instance, account, onStatus, onLog, opts = {}) {
     auth_uuid: account.uuid,
     auth_access_token: account.accessToken || '0',
     auth_session: account.accessToken || '0',
-    clientid: s.azureClientId || '',
+    clientid: process.env.COUNTER_AZURE_CLIENT_ID || s.azureClientId || store.DEFAULT_AZURE_CLIENT_ID,
     auth_xuid: account.xuid || '0',
     user_type: account.type === 'msa' ? 'msa' : 'legacy',
     user_properties: '{}',

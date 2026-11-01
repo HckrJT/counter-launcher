@@ -1,7 +1,56 @@
-// Microsoft login (device code flow) and offline accounts.
-// The Azure application id is entered by the user in the settings; Mojang has to allow that app for the Minecraft API.
+// Microsoft login (OAuth authorization code + PKCE) and offline accounts.
+// The Azure application id is entered by the user in the settings; no client secret belongs in this app.
 const crypto = require('crypto');
+const http = require('http');
 const { postJson, postForm, getJson } = require('./http');
+
+const REDIRECT_PORT = 53682;
+const REDIRECT_URI = `http://localhost:${REDIRECT_PORT}/auth/callback`;
+
+function base64Url(buffer) {
+  return buffer.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+function createPkce() {
+  const verifier = base64Url(crypto.randomBytes(32));
+  const challenge = base64Url(crypto.createHash('sha256').update(verifier).digest());
+  return { verifier, challenge };
+}
+
+function secureStorage() {
+  try {
+    const { safeStorage } = require('electron');
+    return safeStorage && safeStorage.isEncryptionAvailable() ? safeStorage : null;
+  } catch {
+    return null;
+  }
+}
+
+function protectAccount(account) {
+  if ((!account?.refreshToken && !account?.accessToken) || (account.refreshTokenEncrypted && account.accessTokenEncrypted)) return account;
+  const storage = secureStorage();
+  if (!storage) throw new Error('SECURE_STORAGE_UNAVAILABLE');
+  const { refreshToken, accessToken, ...rest } = account;
+  return {
+    ...rest,
+    ...(refreshToken ? { refreshTokenEncrypted: storage.encryptString(refreshToken).toString('base64') } : {}),
+    ...(accessToken ? { accessTokenEncrypted: storage.encryptString(accessToken).toString('base64') } : {}),
+  };
+}
+
+function unprotectAccount(account) {
+  if (account?.refreshToken && account?.accessToken) return account;
+  const storage = secureStorage();
+  if (!storage) {
+    if (account?.refreshTokenEncrypted || account?.accessTokenEncrypted) throw new Error('SECURE_STORAGE_UNAVAILABLE');
+    return account;
+  }
+  return {
+    ...account,
+    ...(account.refreshToken ? {} : account.refreshTokenEncrypted ? { refreshToken: storage.decryptString(Buffer.from(account.refreshTokenEncrypted, 'base64')) } : {}),
+    ...(account.accessToken ? {} : account.accessTokenEncrypted ? { accessToken: storage.decryptString(Buffer.from(account.accessTokenEncrypted, 'base64')) } : {}),
+  };
+}
 
 function offline(name) {
   // same uuid scheme as vanilla offline mode: md5("OfflinePlayer:" + name), version 3
@@ -13,43 +62,93 @@ function offline(name) {
   return { type: 'offline', name, uuid, accessToken: '0' };
 }
 
-/** step 1: returns { user_code, verification_uri, device_code, interval, expires_in } */
-async function startDeviceLogin(clientId) {
-  const r = await postForm('https://login.microsoftonline.com/consumers/oauth2/v2.0/devicecode', {
+/** Opens the normal system browser and waits for Microsoft's redirect to the local callback. */
+async function browserLogin(clientId, openBrowser, isCancelled, onBrowser) {
+  const pkce = createPkce();
+  const state = base64Url(crypto.randomBytes(24));
+  const authorize = new URL('https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize');
+  authorize.search = new URLSearchParams({
     client_id: clientId,
+    response_type: 'code',
+    redirect_uri: REDIRECT_URI,
+    response_mode: 'query',
+    scope: 'XboxLive.signin offline_access',
+    code_challenge: pkce.challenge,
+    code_challenge_method: 'S256',
+    state,
+  }).toString();
+
+  let server;
+  let cancelTimer;
+  let settled = false;
+  const finish = (fn, value) => {
+    if (settled) return;
+    settled = true;
+    clearInterval(cancelTimer);
+    server?.close();
+    fn(value);
+  };
+  const callback = new Promise((resolve, reject) => {
+    server = http.createServer((req, res) => {
+      const url = new URL(req.url, REDIRECT_URI);
+      if (url.pathname !== '/auth/callback') {
+        res.writeHead(404);
+        res.end();
+        return;
+      }
+      if (url.searchParams.get('state') !== state) {
+        res.writeHead(400);
+        res.end('Invalid state');
+        finish(reject, new Error('Invalid Microsoft login state'));
+        return;
+      }
+      const error = url.searchParams.get('error');
+      if (error) {
+        res.writeHead(400, { 'Content-Type': 'text/html; charset=utf-8' });
+        res.end('<h1>Microsoft-Anmeldung abgebrochen</h1><p>Du kannst dieses Fenster schließen.</p>');
+        finish(reject, new Error(url.searchParams.get('error_description') || error));
+        return;
+      }
+      const code = url.searchParams.get('code');
+      if (!code) {
+        res.writeHead(400);
+        res.end('Missing authorization code');
+        finish(reject, new Error('Microsoft returned no authorization code'));
+        return;
+      }
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      res.end('<h1>Anmeldung erfolgreich</h1><p>Du kannst dieses Fenster schließen und zum Counter Launcher zurückkehren.</p>');
+      finish(resolve, code);
+    });
+    server.once('error', (e) => finish(reject, new Error(`Microsoft callback could not start: ${e.message}`)));
+    server.listen(REDIRECT_PORT, '127.0.0.1', () => {
+      onBrowser?.(authorize.toString(), REDIRECT_URI);
+      Promise.resolve().then(() => openBrowser(authorize.toString())).catch((e) => finish(reject, e));
+    });
+    cancelTimer = setInterval(() => {
+      if (isCancelled?.()) finish(reject, new Error('cancelled'));
+    }, 250);
+  });
+
+  const code = await callback;
+  const r = await postForm('https://login.microsoftonline.com/consumers/oauth2/v2.0/token', {
+    grant_type: 'authorization_code',
+    client_id: clientId,
+    code,
+    redirect_uri: REDIRECT_URI,
+    code_verifier: pkce.verifier,
     scope: 'XboxLive.signin offline_access',
   });
-  if (!r.ok) throw new Error(r.data.error_description || 'Device code request failed');
-  return r.data;
-}
-
-/** step 2: polls until the user confirmed in the browser, then signs in to Xbox and Minecraft */
-async function finishDeviceLogin(clientId, device, isCancelled) {
-  const deadline = Date.now() + device.expires_in * 1000;
-  let msToken;
-  while (Date.now() < deadline) {
-    if (isCancelled?.()) throw new Error('cancelled');
-    await new Promise((r) => setTimeout(r, (device.interval || 5) * 1000));
-    const r = await postForm('https://login.microsoftonline.com/consumers/oauth2/v2.0/token', {
-      grant_type: 'urn:ietf:params:oauth:grant-type:device_code',
-      client_id: clientId,
-      device_code: device.device_code,
-    });
-    if (r.ok) {
-      msToken = r.data;
-      break;
-    }
-    if (r.data.error !== 'authorization_pending' && r.data.error !== 'slow_down') throw new Error(r.data.error_description || r.data.error);
-  }
-  if (!msToken) throw new Error('Login timed out');
-  return minecraftFromMs(msToken.access_token, msToken.refresh_token);
+  if (!r.ok) throw new Error(r.data.error_description || r.data.error || 'Microsoft token request failed');
+  return minecraftFromMs(r.data.access_token, r.data.refresh_token || stored.refreshToken);
 }
 
 async function refresh(clientId, account) {
+  const stored = unprotectAccount(account);
   const r = await postForm('https://login.microsoftonline.com/consumers/oauth2/v2.0/token', {
     grant_type: 'refresh_token',
     client_id: clientId,
-    refresh_token: account.refreshToken,
+    refresh_token: stored.refreshToken,
     scope: 'XboxLive.signin offline_access',
   });
   if (!r.ok) throw new Error('Session expired, please sign in again');
@@ -97,4 +196,4 @@ async function minecraftFromMs(msAccess, refreshToken) {
   };
 }
 
-module.exports = { offline, startDeviceLogin, finishDeviceLogin, refresh };
+module.exports = { offline, browserLogin, refresh, protectAccount, unprotectAccount, createPkce, REDIRECT_URI };

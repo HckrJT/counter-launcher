@@ -6,12 +6,14 @@ let root;
 let file;
 let state;
 
+const DEFAULT_AZURE_CLIENT_ID = 'bb5d17f5-97e1-4cb0-b2e8-de162f69470d';
+
 const DEFAULTS = {
   settings: {
     ramMb: 4096,
     javaPath: '',
     jvmArgs: '',
-    azureClientId: '',
+    azureClientId: DEFAULT_AZURE_CLIENT_ID,
     curseforgeKey: '',
     accent: '#9d5cff',
     closeOnLaunch: false,
@@ -76,4 +78,4 @@ const dirs = {
   instance(id) { return path.join(root, 'instances', id); },
 };
 
-module.exports = { init, save, get: () => state, dirs, defaultInstance };
+module.exports = { init, save, get: () => state, dirs, defaultInstance, DEFAULT_AZURE_CLIENT_ID };

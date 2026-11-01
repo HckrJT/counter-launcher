@@ -67,6 +67,21 @@ const playArg = (process.argv.find((a) => a.startsWith('--play=')) || '').slice(
 
 app.whenReady().then(() => {
   store.init(process.env.CL_DATA || path.join(app.getPath('appData'), '.counter-launcher'));
+  // Encrypt tokens from older launcher versions as soon as Electron's
+  // OS-backed safe storage is available.
+  let migrated = false;
+  for (const account of store.get().accounts) {
+    if (account.refreshToken && !account.refreshTokenEncrypted) {
+      try {
+        const protectedAccount = auth.protectAccount(account);
+        delete account.refreshToken;
+        delete account.accessToken;
+        Object.assign(account, protectedAccount);
+        migrated = true;
+      } catch {}
+    }
+  }
+  if (migrated) store.save();
   media.register(protocol, net);
   createWindow();
   win.webContents.once('did-finish-load', () => {
@@ -78,6 +93,7 @@ app.on('window-all-closed', () => app.quit());
 
 const send = (channel, data) => win && !win.isDestroyed() && win.webContents.send(channel, data);
 const instanceById = (id) => store.get().instances.find((i) => i.id === id);
+const azureClientId = () => (process.env.COUNTER_AZURE_CLIENT_ID || store.get().settings.azureClientId || store.DEFAULT_AZURE_CLIENT_ID).trim();
 /** every IPC handler is also kept here, so the assistant can use the same functions as the window */
 const HANDLERS = {};
 const handle = (name, fn) =>
@@ -100,7 +116,7 @@ ipcMain.on('win', (_e, action) => {
 handle('state', () => {
   const s = store.get();
   const mask = (o) => Object.fromEntries(Object.keys(o || {}).filter((k) => o[k]).map((k) => [k, true]));
-  return { ...s, settings: { ...s.settings, groqKey: s.settings.groqKey ? 'gesetzt' : '', aiKeys: mask(s.settings.aiKeys) }, accounts: s.accounts.map(({ accessToken, refreshToken, ...rest }) => rest), running: [...running.keys()], aiShared: !!aiProxy.url, counterFamilies: updates.counterFamilies() };
+  return { ...s, settings: { ...s.settings, groqKey: s.settings.groqKey ? 'gesetzt' : '', aiKeys: mask(s.settings.aiKeys) }, accounts: s.accounts.map(({ accessToken, refreshToken, accessTokenEncrypted, refreshTokenEncrypted, ...rest }) => rest), running: [...running.keys()], aiShared: !!aiProxy.url, counterFamilies: updates.counterFamilies() };
 });
 handle('settings:set', (patch) => {
   Object.assign(store.get().settings, patch);
@@ -335,13 +351,12 @@ handle('account:official', () => {
   return 'Minecraft Launcher';
 });
 handle('account:login', async () => {
-  const clientId = store.get().settings.azureClientId.trim();
+  const clientId = azureClientId();
   if (!clientId) throw new Error('NO_CLIENT_ID');
   loginCancelled = false;
-  const device = await auth.startDeviceLogin(clientId);
-  send('login:code', { code: device.user_code, url: device.verification_uri });
-  shell.openExternal(device.verification_uri);
-  const acc = await auth.finishDeviceLogin(clientId, device, () => loginCancelled);
+  const acc = await auth.browserLogin(clientId, (url) => shell.openExternal(url), () => loginCancelled, (url, redirectUri) => {
+    send('login:browser', { url, redirectUri });
+  });
   addAccount(acc);
   return acc.name;
 });
@@ -360,6 +375,7 @@ handle('account:remove', (uuid) => {
 });
 function addAccount(acc) {
   const s = store.get();
+  acc = auth.protectAccount(acc);
   s.accounts = s.accounts.filter((a) => a.uuid !== acc.uuid);
   s.accounts.push(acc);
   s.activeAccount = acc.uuid;
@@ -419,7 +435,8 @@ handle('play', async (id, opts = {}) => {
   if (!acc) throw new Error('NO_ACCOUNT');
   if (acc.type === 'msa' && acc.expires < Date.now() + 60_000) {
     send('status', 'Login …');
-    const fresh = await auth.refresh(s.settings.azureClientId, acc);
+    const fresh = auth.protectAccount(await auth.refresh(azureClientId(), acc));
+    for (const key of ['refreshToken', 'refreshTokenEncrypted', 'accessToken', 'accessTokenEncrypted', 'expires']) delete acc[key];
     Object.assign(acc, fresh);
     store.save();
   }
@@ -438,7 +455,7 @@ handle('play', async (id, opts = {}) => {
   const tail = [];
   let firstLine = 0;
   let startRecorded = false;
-  const child = await mc.launch(inst, acc, status, (line) => {
+  const child = await mc.launch(inst, auth.unprotectAccount(acc), status, (line) => {
     send('log', { id, line });
     // start time = from the first game output to "Sound engine started" (the game is ready then)
     if (!firstLine) firstLine = Date.now();
@@ -795,10 +812,12 @@ handle('skins:upload', async (id) => {
   const acc = s.accounts.find((a) => a.uuid === s.activeAccount);
   if (!acc || acc.type !== 'msa') throw new Error('Nur mit einem Microsoft-Konto möglich');
   if (acc.expires < Date.now() + 60_000) {
-    Object.assign(acc, await auth.refresh(s.settings.azureClientId, acc));
+    const fresh = auth.protectAccount(await auth.refresh(azureClientId(), acc));
+    for (const key of ['refreshToken', 'refreshTokenEncrypted', 'accessToken', 'accessTokenEncrypted', 'expires']) delete acc[key];
+    Object.assign(acc, fresh);
     store.save();
   }
-  await social.uploadSkin(acc, id);
+  await social.uploadSkin(auth.unprotectAccount(acc), id);
   tools.clearSkinCache();
 });
 handle('notify:test', () => notify('Counter Launcher', 'So sehen Benachrichtigungen aus.'));

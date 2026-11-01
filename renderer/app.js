@@ -896,23 +896,24 @@ function accounts(view) {
       h('div', { style: 'font-weight:650' }, 'Ohne Azure: über den Minecraft Launcher spielen'),
       h('div', { class: 'muted', style: 'margin:4px 0 12px' }, 'Der Counter Launcher installiert alles und öffnet den offiziellen Launcher mit deiner Instanz. Dort bist du schon mit Microsoft angemeldet – online spielen geht ganz normal.'),
       h('button', { class: 'btn primary', onclick: async () => { await call(api.officialAccount); await refresh(); render(); toast('Spielen startet jetzt über den Minecraft Launcher'); } }, 'Über Minecraft Launcher spielen')),
-    h('div', { class: 'row' }, h('button', { class: 'btn', onclick: microsoftLogin }, 'Mit Microsoft anmelden (eigene Azure-App)'), h('span', { class: 'muted' }, 'oder'), nameInput,
+    h('div', { class: 'row' }, h('button', { class: 'btn', onclick: microsoftLogin }, 'Mit Microsoft anmelden'), h('span', { class: 'muted' }, 'oder'), nameInput,
       h('button', { class: 'btn', onclick: async () => { try { await call(api.offline, nameInput.value.trim()); await refresh(); render(); } catch (e) { toast(e.message, true); } } }, 'Offline-Konto')));
 }
 
-let codeListener = null;
 async function microsoftLogin() {
-  const codeBox = h('div', { class: 'code' }, '· · ·');
-  const info = h('p', { class: 'sub' }, 'Code wird angefordert …');
-  modal(h('div', {}, h('h2', {}, 'Microsoft-Anmeldung'), info, codeBox, h('div', { class: 'row', style: 'justify-content:flex-end' }, h('button', { class: 'btn ghost', onclick: () => { api.cancelLogin(); closeModal(); } }, 'Abbrechen'))));
-  codeListener = ({ code, url }) => { codeBox.textContent = code; info.textContent = `Im Browser hat sich ${url} geöffnet. Gib dort diesen Code ein.`; };
+  const info = h('p', { class: 'sub' }, 'Microsoft-Anmeldung wird im Standardbrowser geöffnet …');
+  modal(h('div', {}, h('h2', {}, 'Microsoft-Anmeldung'), info, h('p', { class: 'muted' }, 'Melde dich dort an und kehre danach zum Counter Launcher zurück.'), h('div', { class: 'row', style: 'justify-content:flex-end' }, h('button', { class: 'btn ghost', onclick: () => { api.cancelLogin(); closeModal(); } }, 'Abbrechen'))));
   const r = await api.login();
   closeModal();
   if (r.ok) { toast(`Angemeldet als ${r.data}`); await refresh(); render(); }
-  else if (r.error === 'NO_CLIENT_ID') { toast('Trage zuerst deine Azure-App-ID in den Einstellungen ein – oder nutze „Im Minecraft Launcher öffnen“', true); go({ page: 'settings' }); }
+  else if (r.error === 'NO_CLIENT_ID') toast('Microsoft-Anmeldung ist in dieser Launcher-Version nicht konfiguriert.', true);
+  else if (r.error === 'SECURE_STORAGE_UNAVAILABLE') toast('Die sichere Windows-Speicherung ist nicht verfügbar. Starte den Launcher neu und versuche es erneut.', true);
   else if (r.error !== 'cancelled') toast(r.error, true);
 }
-api.on('login:code', (d) => codeListener && codeListener(d));
+api.on('login:browser', ({ redirectUri }) => {
+  const text = document.querySelector('#modal-root .sub');
+  if (text) text.textContent = `Browser geöffnet. Rückgabe-Adresse: ${redirectUri}`;
+});
 
 // ================================================================= settings
 function settings(view) {
@@ -929,16 +930,12 @@ function settings(view) {
       h('label', {}, 'Beim Spielstart minimieren'), sw('closeOnLaunch'),
       h('label', {}, 'Discord-Status anzeigen'), sw('discordRpc'),
       h('label', {}, 'Discord-Anwendungs-ID'), h('input', { value: s.discordClientId, placeholder: 'discord.com/developers → New Application', onchange: (e) => set({ discordClientId: e.target.value.trim() }) }),
-      h('label', {}, 'Azure-App-ID (Microsoft-Login)'), h('input', { value: s.azureClientId, placeholder: '00000000-0000-0000-0000-000000000000', onchange: (e) => set({ azureClientId: e.target.value.trim() }) }),
       h('label', {}, 'CurseForge-API-Schlüssel'), h('input', { value: s.curseforgeKey, type: 'password', placeholder: 'von console.curseforge.com', onchange: (e) => set({ curseforgeKey: e.target.value.trim() }) }),
       h('div', { class: 'hint' }, 'Nur für CurseForge nötig. Modrinth funktioniert ohne.')),
-    h('h2', {}, 'Microsoft-Login einrichten'),
-    h('ol', { class: 'steps panel' },
-      h('li', {}, 'Mit privatem Microsoft-Konto zuerst ', link('https://azure.microsoft.com/de-de/free/', 'ein kostenloses Azure-Konto'), ' anlegen – das erstellt dein Verzeichnis.'),
-      h('li', {}, link('https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade', 'App-Registrierungen'), ' → „Neue Registrierung“, Kontotyp ', h('code', {}, 'Persönliche Microsoft-Konten'), '.'),
-      h('li', {}, 'Unter „Authentifizierung“ ', h('code', {}, 'Öffentliche Clientflows zulassen'), ' auf „Ja“.'),
-      h('li', {}, 'Die Anwendungs-ID oben eintragen und bei Mojang ', link('https://aka.ms/mce-reviewappid', 'freischalten lassen'), '.'),
-      h('li', {}, 'Ohne Azure: in einer Instanz unter Einstellungen „Im Minecraft Launcher öffnen“ – der offizielle Launcher übernimmt die Anmeldung.')));
+    h('h2', {}, 'Microsoft-Login'),
+    h('div', { class: 'panel', style: 'padding:16px 18px' },
+      h('div', { style: 'font-weight:650' }, 'Direkt mit Microsoft anmelden'),
+      h('p', { class: 'muted', style: 'margin:6px 0 0' }, 'Die Counter-App ist bereits eingerichtet. Klicke unter „Konten“ einfach auf „Mit Microsoft anmelden“. Der Login öffnet sich sicher im Standardbrowser.')));
 }
 
 // ================================================================= update section

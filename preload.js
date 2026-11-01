@@ -132,7 +132,7 @@ contextBridge.exposeInMainWorld('counter', {
   appVersion: call('app:version'),
   backgroundImage: call('theme:image'),
   on: (channel, fn) => {
-    const allowed = ['status', 'log', 'running', 'login:code', 'update', 'crash', 'theme:changed', 'ai:status'];
+    const allowed = ['status', 'log', 'running', 'login:browser', 'update', 'crash', 'theme:changed', 'ai:status'];
     if (allowed.includes(channel)) ipcRenderer.on(channel, (_e, data) => fn(data));
   },
 });
