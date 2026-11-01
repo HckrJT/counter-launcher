@@ -1,6 +1,7 @@
 # Counter Website
 
-Die Website ist eine statische, dependency-freie Landingpage in `CounterLauncher/website`.
+Die Website ist eine statische, dependency-freie Landingpage im Verzeichnis
+`website` dieses Counter-Launcher-Repositories.
 Sie nutzt das vorhandene Counter-Icon sowie die vorhandene Silkscreen-Schrift aus
 `renderer/` und behauptet keine Features, Links oder Serveradressen, die noch nicht
 veröffentlicht sind.
@@ -19,7 +20,8 @@ einem echten Hosting.
 
 ## Vor dem öffentlichen Start
 
-In `website/app.js` die leeren Werte in `COUNTER_CONFIG` ersetzen:
+Nach dem ersten echten GitHub-Release in `website/app.js` die leeren Werte in
+`COUNTER_CONFIG` ersetzen:
 
 - `download`: echte GitHub-Release- oder Installer-URL
 - `repo`: echtes öffentliches Counter-Repository
@@ -35,3 +37,9 @@ Die sichtbare Launch-Checkliste auf der Website hält zusätzlich fest:
 - Hosting, Domain und DNS verbinden
 - verfügbare GitHub Student Benefits für Hosting, Domain und CI/CD nutzen
 - danach den echten Download-Link eintragen
+
+Die komplette Release- und GitHub-Pages-Anleitung steht in
+[`RELEASE.md`](../RELEASE.md). Der Launcher-Update-Knopf bezieht seine
+Metadaten nicht von dieser Website, sondern aus GitHub Releases:
+`latest.yml`, Installer und Blockmap werden automatisch durch den Release-
+Workflow erzeugt.
