@@ -709,6 +709,7 @@ function aiChain() {
   const st = store.get().settings;
   const keys = { ...(st.aiKeys || {}) };
   if (st.groqKey && !keys.groq) keys.groq = st.groqKey;
+  if (st.openrouterKey && !keys.openrouter) keys.openrouter = st.openrouterKey;
   const order = ['ollama', 'gemini', 'mistral', 'cerebras', 'nvidia', 'openrouter', 'groq', ...(process.env.CL_AI_TEST_URL ? ['mock'] : [])];
   const pick = st.aiProvider && st.aiProvider !== 'auto' ? st.aiProvider : null;
   const chain = [];
@@ -767,6 +768,7 @@ handle('ai:providers', () => {
   const st = store.get().settings;
   const have = { ...(st.aiKeys || {}) };
   if (st.groqKey && !have.groq) have.groq = st.groqKey;
+  if (st.openrouterKey && !have.openrouter) have.openrouter = st.openrouterKey;
   return { list: assistant.providerList().map((p) => ({ ...p, hasKey: p.id === 'proxy' ? !!aiProxy.url : !!have[p.id] })), selected: st.aiProvider || 'auto', shareFallback: st.aiShareFallback !== false };
 });
 handle('ai:setKey', async (id, key) => {

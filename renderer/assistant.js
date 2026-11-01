@@ -883,11 +883,33 @@ async function assistantPage(view) {
   view.addEventListener('dragleave', () => view.classList.remove('drop'));
   view.addEventListener('drop', (e) => { e.preventDefault(); e.stopPropagation(); view.classList.remove('drop'); addFiles([...e.dataTransfer.files]); }, true);
 
+  const providerSel = h('select', { class: 'ai-provider-inline', title: 'KI-Anbieter' });
   const modelSel = h('select', { class: 'ai-model', title: 'Modell', onchange: (e) => { call(api.setSettings, { groqModel: e.target.value }); state.settings.groqModel = e.target.value; } }, h('option', { value: '' }, 'Bestes Modell (automatisch)'));
-  call(api.aiModels).then((m) => {
-    for (const id of m.ids) modelSel.append(h('option', { value: id }, id + ((m.reasoning || []).includes(id) ? ' · denkt' : '')));
-    modelSel.value = state.settings.groqModel || '';
-  }).catch(() => {});
+  function drawProviderSelect() {
+    const keys = state.settings.aiKeys || {};
+    const has = (id) => id === 'groq' ? !!(keys.groq || state.settings.groqKey) : !!keys[id];
+    providerSel.replaceChildren(
+      h('option', { value: 'auto' }, 'KI automatisch'),
+      h('option', { value: 'groq', disabled: !has('groq') }, `Groq${has('groq') ? ' · Schlüssel' : ' · nicht eingerichtet'}`),
+      h('option', { value: 'openrouter', disabled: !has('openrouter') }, `OpenRouter${has('openrouter') ? ' · Schlüssel' : ' · nicht eingerichtet'}`),
+    );
+    providerSel.value = state.settings.aiProvider || 'auto';
+  }
+  async function loadModels() {
+    modelSel.replaceChildren(h('option', { value: '' }, 'Bestes Modell (automatisch)'));
+    try {
+      const m = await call(api.aiModels);
+      for (const id of m.ids) modelSel.append(h('option', { value: id }, id + ((m.reasoning || []).includes(id) ? ' · denkt' : '')));
+      modelSel.value = state.settings.groqModel || '';
+    } catch {}
+  }
+  providerSel.addEventListener('change', async () => {
+    await call(api.setSettings, { aiProvider: providerSel.value });
+    state.settings.aiProvider = providerSel.value;
+    await loadModels();
+  });
+  drawProviderSelect();
+  loadModels();
 
   const skillsHost = h('div', { class: 'ai-studio-host hidden' });
   function openSkills() {
@@ -920,6 +942,7 @@ async function assistantPage(view) {
         if (aiAuto) toast('Der Assistent darf Änderungen jetzt direkt ausführen');
         drawHead();
       } }, h('i'), h('span', {}, aiAuto ? 'Ändern: automatisch' : 'Ändern: nachfragen')),
+      providerSel,
       modelSel,
       h('button', { class: 'btn sm ghost', title: 'Chat als Markdown speichern', onclick: exportChat }, '⤓'),
       h('button', { class: 'btn sm', title: 'Fertige Aufgaben als Knöpfe', onclick: openSkills }, '✨ Fähigkeiten'),

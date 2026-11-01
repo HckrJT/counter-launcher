@@ -37,6 +37,11 @@ function init(dataDir) {
   try {
     state = { ...DEFAULTS, ...JSON.parse(fs.readFileSync(file, 'utf8')) };
     state.settings = { ...DEFAULTS.settings, ...state.settings };
+    if (state.settings.openrouterKey && !state.settings.aiKeys?.openrouter) {
+      state.settings.aiKeys = { ...(state.settings.aiKeys || {}), openrouter: state.settings.openrouterKey };
+      delete state.settings.openrouterKey;
+      save();
+    }
   } catch {
     state = JSON.parse(JSON.stringify(DEFAULTS));
   }

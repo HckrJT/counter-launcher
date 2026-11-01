@@ -382,6 +382,17 @@ function playButton(inst) {
 async function home(view) {
   const inst = [...state.instances].sort((a, b) => (b.lastPlayed || 0) - (a.lastPlayed || 0))[0];
   const acc = state.accounts.find((a) => a.uuid === state.activeAccount);
+  const hasMicrosoft = state.accounts.some((a) => a.type === 'msa');
+  if (!hasMicrosoft) {
+    view.append(h('div', { class: 'account-hero' },
+      h('div', { class: 'eyebrow' }, 'Counter'),
+      h('h1', {}, 'Microsoft anmelden'),
+      h('div', { class: 'product-line' }, 'Minecraft Launcher'),
+      h('p', {}, 'Melde dich mit deinem Microsoft-Konto an, damit Counter Minecraft online starten und dein Konto sicher verwenden kann.'),
+      h('div', { class: 'row' },
+        h('button', { class: 'btn primary', onclick: microsoftLogin }, 'Mit Microsoft anmelden'),
+        h('span', { class: 'muted' }, 'Offizieller Login im Browser'))));
+  }
   if (inst) {
     view.append(
       h('div', { class: 'label' }, acc ? `Hallo ${acc.name}` : 'Willkommen'),
@@ -891,12 +902,18 @@ function accounts(view) {
       a.uuid === state.activeAccount ? h('span', { class: 'tag g' }, 'Aktiv') : h('button', { class: 'btn sm', onclick: async () => { await call(api.selectAccount, a.uuid); await refresh(); render(); } }, 'Benutzen'),
       h('button', { class: 'btn sm ghost danger', onclick: async () => { await call(api.removeAccount, a.uuid); await refresh(); render(); } }, svg(I.trash)))))
       : h('div', { class: 'empty panel' }, h('b', {}, 'Noch kein Konto')),
-    h('h2', {}, 'Hinzufügen'),
-    h('div', { class: 'panel', style: 'padding:16px 18px;margin-bottom:14px' },
-      h('div', { style: 'font-weight:650' }, 'Ohne Azure: über den Minecraft Launcher spielen'),
-      h('div', { class: 'muted', style: 'margin:4px 0 12px' }, 'Der Counter Launcher installiert alles und öffnet den offiziellen Launcher mit deiner Instanz. Dort bist du schon mit Microsoft angemeldet – online spielen geht ganz normal.'),
-      h('button', { class: 'btn primary', onclick: async () => { await call(api.officialAccount); await refresh(); render(); toast('Spielen startet jetzt über den Minecraft Launcher'); } }, 'Über Minecraft Launcher spielen')),
-    h('div', { class: 'row' }, h('button', { class: 'btn', onclick: microsoftLogin }, 'Mit Microsoft anmelden'), h('span', { class: 'muted' }, 'oder'), nameInput,
+    h('h2', {}, 'Microsoft anmelden'),
+    h('div', { class: 'account-hero' },
+      h('div', { class: 'eyebrow' }, 'Hauptkonto'),
+      h('h1', {}, 'Mit Microsoft verbinden'),
+      h('div', { class: 'product-line' }, 'Minecraft Launcher'),
+      h('p', {}, 'Der offizielle Login öffnet sich im Standardbrowser. Counter speichert die Sitzung sicher und nutzt sie für Minecraft Services.'),
+      h('button', { class: 'btn primary', onclick: microsoftLogin }, 'Mit Microsoft anmelden')),
+    h('div', { class: 'official-secondary' },
+      h('strong', {}, 'Minecraft Launcher als Alternative'),
+      h('span', {}, ' · Counter installiert alles und öffnet den offiziellen Launcher, wenn du dort bereits angemeldet bist.'),
+      h('button', { class: 'btn sm ghost', style: 'margin-left:10px', onclick: async () => { await call(api.officialAccount); await refresh(); render(); toast('Spielen startet jetzt über den Minecraft Launcher'); } }, 'Öffnen')),
+    h('div', { class: 'row' }, h('span', { class: 'muted' }, 'Oder für Einzelspieler/Tests:'), nameInput,
       h('button', { class: 'btn', onclick: async () => { try { await call(api.offline, nameInput.value.trim()); await refresh(); render(); } catch (e) { toast(e.message, true); } } }, 'Offline-Konto')));
 }
 

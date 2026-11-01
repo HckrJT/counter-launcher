@@ -915,6 +915,12 @@ async function checkKey(id, key) {
 }
 
 /** providers for the settings page (no internals) */
-const providerList = () => Object.entries(PROVIDERS).filter(([id]) => id !== 'mock').map(([id, P]) => ({ id, name: P.name, note: P.note, keyUrl: P.keyUrl || '', hint: P.hint || '' }));
+const providerList = () => {
+  const priority = ['groq', 'openrouter', 'proxy'];
+  return Object.entries(PROVIDERS)
+    .filter(([id]) => id !== 'mock')
+    .sort(([a], [b]) => (priority.indexOf(a) === -1 ? 99 : priority.indexOf(a)) - (priority.indexOf(b) === -1 ? 99 : priority.indexOf(b)))
+    .map(([id, P]) => ({ id, name: P.name, note: P.note, keyUrl: P.keyUrl || '', hint: P.hint || '' }));
+};
 
 module.exports = { ask, models, PREF_DEFAULTS, fitBody, providerList, PROVIDERS, checkKey };
