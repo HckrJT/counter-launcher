@@ -3,7 +3,7 @@
  * community are ready. Empty values intentionally keep the related CTA local.
  */
 const COUNTER_CONFIG = {
-  download: 'https://github.com/HckrJT/counter-launcher/releases/latest/download/Counter-Launcher-Setup-1.20.9.exe',
+  download: 'https://github.com/HckrJT/counter-launcher/releases/latest/download/Counter-Launcher-Setup-1.20.10.exe',
   repo: 'https://github.com/HckrJT/counter-launcher',
   discord: '',
   server: '',
