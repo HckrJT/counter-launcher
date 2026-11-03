@@ -35,6 +35,11 @@ const PROVIDERS = {
     extraHeaders: { 'HTTP-Referer': 'https://github.com/HckrJT/counter-launcher', 'X-Title': 'Counter Launcher' },
     prefer: [/kimi/i, /glm/i, /deepseek/i, /qwen3.*(235|max|plus|next)/i, /gpt-oss-120b/i, /llama-3\.3-70b/i, /nemotron.*(super|ultra)/i, /qwen/i, /gemma/i, /mistral/i],
   },
+  // the shared OpenRouter key in the Counter AI worker: same free-model filter and ranking as an own OpenRouter key
+  'proxy-openrouter': {
+    name: 'Counter AI · OpenRouter (geteilt)', note: 'Geteilter Counter-Server mit dem Cloudflare-OpenRouter-Schlüssel.', tpm: 30000,
+    prefer: [/kimi/i, /glm/i, /deepseek/i, /qwen3.*(235|max|plus|next)/i, /gpt-oss-120b/i, /llama-3\.3-70b/i, /nemotron.*(super|ultra)/i, /qwen/i, /gemma/i, /mistral/i],
+  },
   cerebras: {
     name: 'Cerebras', note: 'Sehr schnell, großes Token-Kontingent pro Tag. Neue Konten brauchen oft eine hinterlegte Zahlungsmethode für das Testguthaben.',
     chat: 'https://api.cerebras.ai/v1/chat/completions', list: 'https://api.cerebras.ai/v1/models', keyUrl: 'https://cloud.cerebras.ai/platform/', hint: 'csk-…', tpm: 28000,
@@ -243,6 +248,8 @@ async function groqOnce(key, body) {
     const e = new Error(apiError.message || `${provider().name}-Fehler ${res.status}`);
     // the model wrote a broken tool call: worth one more try
     e.parse = /parsing failed|failed_generation|tool_use_failed|output_parse/i.test(e.message + ' ' + ((data.error && data.error.code) || ''));
+    // "Insufficient credits" (OpenRouter): this model is not free on the key, the next model may be
+    if (res.status === 402) e.retryModel = true;
     throw e;
   }
   if (!data.choices || !data.choices[0]) {
@@ -920,6 +927,6 @@ async function checkKey(id, key) {
 }
 
 /** providers for the settings page (no internals) */
-const providerList = () => Object.entries(PROVIDERS).filter(([id]) => id !== 'mock' && id !== 'proxy').map(([id, P]) => ({ id, name: P.name, note: P.note, keyUrl: P.keyUrl || '', hint: P.hint || '' }));
+const providerList = () => Object.entries(PROVIDERS).filter(([id]) => id !== 'mock' && id !== 'proxy' && id !== 'proxy-openrouter').map(([id, P]) => ({ id, name: P.name, note: P.note, keyUrl: P.keyUrl || '', hint: P.hint || '' }));
 
 module.exports = { ask, models, PREF_DEFAULTS, fitBody, providerList, PROVIDERS, checkKey };
