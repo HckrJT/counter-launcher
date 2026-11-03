@@ -327,14 +327,36 @@ handle('instance:duplicate', async (id) => {
 
 // ---------------------------------------------------------------- import
 handle('import:scan', () => importers.scan());
-handle('import:found', (found, mcVersion, parts) => importers.importFound(found, mcVersion, (t) => send('status', t), parts));
-handle('import:file', async () => {
-  const r = await dialog.showOpenDialog(win, { properties: ['openFile'], filters: [{ name: 'Modpacks', extensions: ['mrpack', 'zip'] }] });
+/** what came along (mods, settings, servers, packs), so the import page can show it right away */
+const importSummary = (inst) => {
+  const s = importers.summary(inst);
+  try {
+    s.serverCount = extras.servers(inst).length;
+  } catch {
+    s.serverCount = 0;
+  }
+  return s;
+};
+handle('import:found', async (found, mcVersion, parts) => {
+  const inst = await importers.importFound(found, mcVersion, (t) => send('status', t), parts);
+  return { ...inst, summary: importSummary(inst) };
+});
+handle('import:file', async (from) => {
+  // open the file dialog where that launcher saves its exports
+  const nrcExports = path.join(app.getPath('appData'), 'norisk', 'NoRiskClientV3', 'exports');
+  const defaultPath = from === 'norisk' && fs.existsSync(nrcExports) ? nrcExports : app.getPath('downloads');
+  const r = await dialog.showOpenDialog(win, { defaultPath, properties: ['openFile'], filters: [{ name: 'Profil-Export', extensions: ['noriskpack', 'mrpack', 'zip'] }] });
   if (r.canceled) return null;
   const file = r.filePaths[0];
   const status = (t) => send('status', t);
-  if (file.endsWith('.mrpack')) return { instance: await importers.importMrpack(file, status), skipped: [] };
-  return curseforge.importModpack(file, status);
+  let out;
+  // the ending says little (.zip can be CurseForge, Prism or a renamed export): look inside
+  const kind = file.endsWith('.mrpack') ? 'modrinth' : await importers.zipKind(file);
+  if (kind === 'modrinth') out = { instance: await importers.importMrpack(file, status), skipped: [] };
+  else if (kind === 'curseforge') out = await curseforge.importModpack(file, status);
+  else out = { instance: await importers.importPack(file, status), skipped: [] };
+  status('');
+  return { ...out, summary: importSummary(out.instance) };
 });
 
 // ---------------------------------------------------------------- accounts

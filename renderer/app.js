@@ -815,26 +815,114 @@ async function project(view, r) {
 }
 
 // ================================================================= import
+/**
+ * Per launcher: how to export a profile there with everything ticked (that is the only way settings, servers and
+ * packs reliably come along), or – for launchers without an export – which folders Counter reads directly.
+ * "**text**" is shown bold.
+ */
+const IMPORT_GUIDES = {
+  norisk: { name: 'NoRiskClient', file: true, steps: [
+    'Im NoRiskClient-Launcher auf **Profile** gehen und beim Profil **Exportieren** wählen.',
+    'Das Format **NoRiskClient** (Blitz-Symbol) lassen.',
+    'Bei „Dateien & Ordner auswählen“ auf **Alle auswählen** klicken – nur so kommen Einstellungen (options.txt), Serverliste (servers.dat), Configs, Ressourcenpakete und Shader mit. Welten und Screenshots kannst du abwählen, wenn sie zu groß sind.',
+    '**Profil exportieren** klicken – die .noriskpack landet in NoRiskClientV3\\exports.',
+    'Hier auf **Export-Datei auswählen** klicken und die .noriskpack öffnen.',
+  ] },
+  modrinth: { name: 'Modrinth App', file: true, steps: [
+    'In der Modrinth App die Instanz öffnen, oben rechts auf **⋯** und **Export modpack** wählen.',
+    'In der Dateiliste **options.txt**, **servers.dat**, **config**, **resourcepacks** und **shaderpacks** anhaken (für Welten zusätzlich **saves**).',
+    '**Export** klicken und die .mrpack speichern.',
+    'Hier auf **Export-Datei auswählen** klicken und die .mrpack öffnen.',
+  ] },
+  curseforge: { name: 'CurseForge', file: true, steps: [
+    'In CurseForge unter **My Modpacks** beim Profil auf **⋯** und **Export Profile** klicken.',
+    '**config**, **resourcepacks**, **shaderpacks**, **options.txt** und **servers.dat** anhaken (für Welten zusätzlich **saves**).',
+    '**Export** klicken und die .zip speichern.',
+    'Hier auf **Export-Datei auswählen** klicken. Mods von CurseForge lädt Counter nur mit einem CurseForge-Schlüssel in den Einstellungen.',
+  ] },
+  prism: { name: 'Prism / MultiMC', file: true, steps: [
+    'Rechtsklick auf die Instanz und **Exportieren** → **Prism Launcher (zip)** (oder Modrinth .mrpack) wählen.',
+    'Alles angehakt lassen – nur **logs** darf weg.',
+    'Speichern und hier auf **Export-Datei auswählen** klicken.',
+  ] },
+  lunar: { name: 'Lunar Client', source: 'Lunar Client', steps: [
+    'Lunar hat keine Export-Funktion – Counter liest direkt aus **.lunarclient\\profiles**: Einstellungen, Serverliste, Ressourcenpakete, Shader und deine eigenen Fabric-Mods.',
+    'Lunars eigene Mods (Lunar-Menü, Cosmetics) lassen sich nicht mitnehmen.',
+    'Lunar vorher schließen und unten beim passenden Eintrag auf **Importieren** klicken.',
+  ] },
+  feather: { name: 'Feather', source: 'Feather', steps: [
+    'Feather hat keine Export-Funktion – Counter nimmt deine eigenen Mods aus **.feather\\user-mods** und Einstellungen, Server und Packs aus **.minecraft**.',
+    'Feathers eigene Mods lassen sich nicht mitnehmen.',
+    'Feather vorher schließen und unten beim passenden Eintrag auf **Importieren** klicken.',
+  ] },
+  vanilla: { name: 'Minecraft / LabyMod / Badlion', source: 'Minecraft Launcher', steps: [
+    'Der offizielle Launcher, LabyMod und Badlion spielen alle im Ordner **.minecraft** – Counter übernimmt von dort Einstellungen, Server, Packs und Mods.',
+    'Spiel vorher schließen und unten bei **.minecraft** auf **Importieren** klicken.',
+  ] },
+};
+const boldText = (t) => t.split('**').map((s, i) => (i % 2 ? h('b', {}, s) : s));
+
+/** after every import: what came along, so a missing servers.dat or options.txt is obvious right away */
+function importSummaryModal(inst, s, skipped = []) {
+  const row = (ok, label, extra) => h('div', { class: 'lrow' }, h('span', { style: `width:22px;font-weight:800;color:${ok ? 'var(--accent)' : 'var(--muted)'}` }, ok ? '✓' : '–'), h('span', { class: 'grow' }, label), extra ? h('span', { class: 'meta' }, extra) : null);
+  const missing = !s.settings || !s.servers;
+  modal(h('div', {}, h('h2', {}, `„${inst.name}“ importiert`),
+    h('p', { class: 'sub' }, `${inst.mcVersion || '?'} · ${inst.loader}${inst.importedFrom ? ` · aus ${inst.importedFrom}` : ''}`),
+    h('div', { class: 'list panel', style: 'margin-top:12px' },
+      row(s.mods + s.modsOff > 0, 'Mods', `${s.mods}${s.modsOff ? ` + ${s.modsOff} ausgeschaltet` : ''}`),
+      row(s.settings, 'Einstellungen & Tastenbelegung', s.settings ? 'options.txt' : 'fehlt'),
+      row(s.servers, 'Serverliste', s.servers ? `${s.serverCount} Server` : 'fehlt'),
+      row(s.config > 0, 'Mod-Configs', String(s.config)),
+      row(s.resourcepacks > 0, 'Ressourcenpakete', String(s.resourcepacks)),
+      row(s.shaderpacks > 0, 'Shader', String(s.shaderpacks)),
+      row(s.saves > 0, 'Welten', String(s.saves))),
+    missing ? h('p', { class: 'sub', style: 'margin-top:12px' }, boldText('Fehlt etwas? Dann war es im Export nicht angehakt – beim Exportieren **Alle auswählen** bzw. **options.txt** und **servers.dat** anhaken und nochmal importieren.')) : null,
+    skipped.length ? h('p', { class: 'sub', style: 'margin-top:8px' }, `${skipped.length} Datei(en) gibt es nur direkt auf CurseForge.`) : null,
+    s.warnings?.length ? h('p', { class: 'sub', style: 'margin-top:8px;color:var(--danger, #ff6b6b)' }, `Nicht übernommen: ${s.warnings.join(', ')}`) : null,
+    h('div', { class: 'row', style: 'justify-content:flex-end;margin-top:16px' },
+      h('button', { class: 'btn ghost', onclick: closeModal }, 'Schließen'),
+      h('button', { class: 'btn primary', onclick: () => { closeModal(); go({ page: 'instance', id: inst.id }); } }, 'Zur Instanz'))));
+}
+
 async function importPage(view) {
   const list = h('div', { class: 'list panel stagger' }, h('div', { class: 'skeleton', style: 'height:140px;margin:10px' }));
+  let found = null;
+  const pickFile = async (from, btn) => {
+    btn.disabled = true;
+    try {
+      const r = await call(api.importFile, from);
+      if (!r) return;
+      await refresh();
+      importSummaryModal(r.instance, r.summary, r.skipped);
+    } catch (e) {
+      toast(e.message, true);
+    } finally {
+      btn.disabled = false;
+    }
+  };
+  const guideBox = h('div', { class: 'panel', style: 'padding:4px 0 14px;margin-top:10px' });
+  const tabs = h('div', { class: 'seg', style: 'flex-wrap:wrap' });
+  const showGuide = (id) => {
+    const g = IMPORT_GUIDES[id];
+    tabs.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.id === id));
+    const fileBtn = h('button', { class: 'btn primary' }, svg(I.upload), 'Export-Datei auswählen');
+    fileBtn.addEventListener('click', () => pickFile(id, fileBtn));
+    const matches = found ? found.filter((f) => f.source === g.source).length : 0;
+    guideBox.replaceChildren(h('ol', { class: 'steps' }, g.steps.map((s) => h('li', {}, boldText(s)))),
+      h('div', { class: 'row', style: 'padding:0 22px' }, g.file ? fileBtn
+        : h('span', { class: 'meta' }, found ? (matches ? `${matches} Eintrag/Einträge unten unter „Auf diesem PC gefunden“` : `${g.name} wurde auf diesem PC nicht gefunden`) : 'Suche läuft …')));
+  };
+  for (const [id, g] of Object.entries(IMPORT_GUIDES)) tabs.append(h('button', { 'data-id': id, onclick: () => showGuide(id) }, g.name));
   view.append(h('h1', {}, 'Importieren'),
-    h('p', { class: 'sub' }, 'Übernimmt Mods, Einstellungen, Tastenbelegung (options.txt), Serverliste, Ressourcenpakete, Shader, Configs und Welten.'),
-    h('div', { class: 'row', style: 'margin:18px 0' },
-      h('button', { class: 'btn primary', onclick: async () => {
-        try {
-          const r = await call(api.importFile);
-          if (!r) return;
-          await refresh();
-          toast(`„${r.instance.name}“ importiert` + (r.skipped?.length ? ` – ${r.skipped.length} Datei(en) gibt es nur direkt auf CurseForge` : ''));
-          go({ page: 'instance', id: r.instance.id });
-        } catch (e) {
-          toast(e.message, true);
-        }
-      } }, svg(I.upload), 'Modpack-Datei (.mrpack / CurseForge .zip)')),
+    h('p', { class: 'sub' }, 'Übernimmt Mods, Einstellungen, Tastenbelegung (options.txt), Serverliste, Ressourcenpakete, Shader, Configs und Welten. Am zuverlässigsten über die Export-Funktion deines alten Launchers – wähl ihn aus:'),
+    h('div', { style: 'margin:16px 0 22px' }, tabs, guideBox),
     h('div', { id: 'import-extras' }),
-    h('h2', {}, 'Auf diesem PC gefunden'), list);
+    h('h2', {}, 'Auf diesem PC gefunden'),
+    h('p', { class: 'sub' }, 'Schnell-Import direkt aus den Ordnern der anderen Launcher – ohne Export, aber nicht jeder Launcher legt alles so ab, dass Counter es findet.'), list);
+  showGuide('norisk');
   importExtras(view.querySelector('#import-extras'));
-  const found = await call(api.scanImports);
+  found = await call(api.scanImports);
+  showGuide(tabs.querySelector('button.on')?.dataset.id || 'norisk');
   list.replaceChildren(...(found.length ? found.map((f) => {
     const ver = h('input', { value: f.mcVersion || '', placeholder: 'Version', style: 'width:110px' });
     const btn = h('button', { class: 'btn sm primary' }, 'Importieren');
@@ -848,8 +936,7 @@ async function importPage(view) {
         const inst = await call(api.importFound, f, ver.value.trim(), parts);
         await refresh();
         btn.textContent = '✓ Importiert';
-        toast(`${f.name} importiert`);
-        if (inst.importWarnings?.length) toast(`Nicht übernommen: ${inst.importWarnings.join(', ')}`, true);
+        importSummaryModal(inst, inst.summary);
       } catch (e) {
         toast(e.message, true);
         btn.disabled = false;
