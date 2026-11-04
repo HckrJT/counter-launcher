@@ -213,10 +213,11 @@ const TOOLS = [
   fn('launcher_design', 'Ändert das Design des Counter Launchers.', { patch: { type: 'object' }, summary: { type: 'string' } }, ['patch', 'summary']),
   fn('create_instance', 'Legt eine neue Instanz an.', { name: { type: 'string' }, mcVersion: { type: 'string' }, loader: { type: 'string' }, counter: { type: 'boolean' } }, ['name', 'mcVersion', 'loader']),
   fn('launch_instance', 'Startet Minecraft mit einer Instanz (optional direkt auf einen Server).', { id: { type: 'string' }, server: { type: 'string' } }, ['id']),
+  fn('update_counter', 'Lädt die neueste Counter-Mod-Version in eine Instanz (oder in alle Fabric-Instanzen mit all=true) und schaltet Counter dort ein.', { id: { type: 'string' }, all: { type: 'boolean' } }, []),
   fn('backup_world', 'Erstellt ein Backup einer Welt der ausgewählten Instanz.', { world: { type: 'string' } }, ['world']),
 ];
 // tools that change something: proposed to the user unless auto mode is on
-const ACTIONS = new Set(['install_mod', 'remove_mod', 'toggle_mod', 'counter_config', 'create_module', 'create_resourcepack', 'launcher_design', 'create_instance', 'launch_instance', 'backup_world', 'build_modpack']);
+const ACTIONS = new Set(['install_mod', 'remove_mod', 'toggle_mod', 'counter_config', 'create_module', 'create_resourcepack', 'launcher_design', 'create_instance', 'launch_instance', 'update_counter', 'backup_world', 'build_modpack']);
 
 // ---------------------------------------------------------------- Groq
 

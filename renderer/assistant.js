@@ -66,6 +66,8 @@ let aiChatId = lsGet('cl.aiChat', aiChats[0] && aiChats[0].id);
 const curChat = () => aiChats.find((c) => c.id === aiChatId) || aiChats[0] || (aiChats.push(newChat()), aiChats[0]);
 let aiAuto = lsGet('cl.aiAuto', false);
 let aiBusy = false;
+// the chat page that is open right now: an answer that arrives after a tab switch is drawn there, not into the old, detached page
+let aiDrawHook = null;
 let aiAttach = [];
 let aiStatusLabel = null;
 let aiSideOpen = lsGet('cl.aiSide', true);
@@ -285,6 +287,7 @@ const actionLabel = (a) => ({
   create_instance: () => `Neue Instanz „${a.name}“ (${a.loader || 'fabric'} ${a.mcVersion}${a.counter ? ' + Counter' : ''})`,
   build_modpack: () => `Modpack „${a.name}“ bauen (${(a.projects || []).length} Mods, ${a.loader || 'fabric'} ${a.mcVersion})`,
   launch_instance: () => `${(instById(a.id) || {}).name || a.id} starten${a.server ? ` und ${a.server} beitreten` : ''}`,
+  update_counter: () => (a.all ? 'Neueste Counter-Mod in alle Fabric-Instanzen laden' : `Neueste Counter-Mod in „${(instById(a.id) || {}).name || 'diese Instanz'}“ laden`),
   backup_world: () => `Backup der Welt „${a.world}“`,
 }[a.kind] || (() => a.kind))();
 const actionIcon = (a) => ({ install_mod: '+', remove_mod: '−', toggle_mod: '⇄', create_module: '✦', create_resourcepack: '▦', counter_config: '⚙', launcher_design: '◐', create_instance: '▣', launch_instance: '▶', backup_world: '⛁', build_modpack: '📦' }[a.kind] || '•');
@@ -533,6 +536,7 @@ async function assistantPage(view) {
     log.scrollTop = log.scrollHeight;
     drawSide();
   };
+  aiDrawHook = () => { if (log.isConnected) draw(); };
 
   // sidebar with all chats
   const side = h('div', { class: 'ai-side' + (aiSideOpen ? '' : ' closed') });
@@ -784,7 +788,7 @@ async function assistantPage(view) {
       aiBusy = false;
       aiStatusLabel = null;
       saveChats();
-      if (log.isConnected) draw();
+      if (aiDrawHook) aiDrawHook();
     }
   }
   const cmdBox = h('div', { class: 'ai-cmds hidden' });

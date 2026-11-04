@@ -251,6 +251,27 @@ async function saveTheme(patch, accent) {
   applyTheme();
 }
 
+/** installs mod updates with a progress modal (bar, current mod, count) – used by every "Aktualisieren" button */
+async function applyUpdatesWithProgress(inst, list) {
+  const bar = h('i', { style: 'display:block;height:100%;width:0;background:var(--accent);border-radius:6px;transition:width 0.25s' });
+  const count = h('b', {}, `0/${list.length}`);
+  const now = h('div', { class: 'muted small', style: 'margin-top:8px;min-height:18px' }, 'Sichere Mods und starte …');
+  modal(h('div', {}, h('h2', {}, `„${inst.name}“ aktualisieren`),
+    h('div', { class: 'row', style: 'margin:14px 0 8px' }, h('div', { class: 'grow', style: 'height:10px;border-radius:6px;background:var(--s2);overflow:hidden' }, bar), count), now));
+  const off = api.on('updates:progress', (p) => {
+    if (p.id !== inst.id) return;
+    bar.style.width = `${(p.done / p.total) * 100}%`;
+    count.textContent = `${p.done}/${p.total}`;
+    now.textContent = p.done < p.total ? p.name : 'Fertig';
+  });
+  try {
+    return await call(api.applyUpdates, inst.id, list);
+  } finally {
+    if (typeof off === 'function') off();
+    closeModal();
+  }
+}
+
 async function refresh() {
   state = await call(api.state);
   applyTheme();
@@ -296,6 +317,13 @@ api.on('log', ({ line }) => {
   pre.textContent += line;
   if (pre.textContent.length > 200000) pre.textContent = pre.textContent.slice(-150000);
   pre.scrollTop = pre.scrollHeight;
+});
+// titlebar chip while games run: opens the "Laufende Spiele" window
+const gamesChip = h('button', { class: 'update-pill ready hidden', title: 'Laufende Spiele mit Logs ansehen', onclick: () => api.gamesOpen() });
+$('#titlebar').insertBefore(gamesChip, $('#status'));
+api.on('games', (list) => {
+  gamesChip.classList.toggle('hidden', !list.length);
+  gamesChip.textContent = `${list.length} Spiel${list.length === 1 ? '' : 'e'} läuft – Logs`;
 });
 api.on('running', async (ids) => {
   state.running = ids;
@@ -348,7 +376,8 @@ async function render() {
 // ================================================================= play
 async function play(inst, opts = {}) {
   if (busy.has(inst.id)) return;
-  if (state.running.includes(inst.id)) {
+  // a running instance can be started once more (opts.another); without that the button stops it
+  if (state.running.includes(inst.id) && !opts.another) {
     await call(api.stop, inst.id);
     return;
   }
@@ -374,8 +403,8 @@ async function play(inst, opts = {}) {
 function playButton(inst) {
   const running = state.running.includes(inst.id);
   const loading = busy.has(inst.id);
-  return h('button', { class: 'btn primary play' + (running ? ' running' : ''), onclick: (e) => { if (!running) window.pixelBurst(e.currentTarget); play(inst); } },
-    loading ? [h('span', { class: 'spin' }), 'Startet'] : running ? [svg(I.stop), 'Stoppen'] : [svg(I.play), 'Spielen']);
+  return h('button', { class: 'btn primary play' + (running ? ' running' : ''), title: running ? 'Startet ein weiteres Fenster dieser Instanz – beenden geht im Fenster „Laufende Spiele“' : '', onclick: (e) => { window.pixelBurst(e.currentTarget); play(inst, running ? { another: true } : {}); } },
+    loading ? [h('span', { class: 'spin' }), 'Startet'] : running ? [svg(I.play), 'Noch einmal starten'] : [svg(I.play), 'Spielen']);
 }
 
 // ================================================================= home
@@ -526,7 +555,7 @@ async function tabContent(body, inst) {
     try {
       const u = await call(api.checkUpdates, inst.id);
       if (!u.length) toast('Alle Mods sind aktuell');
-      else confirmModal(`${u.length} Update(s) gefunden:\n${u.map((x) => `${x.name} → ${x.version}`).join('\n')}`, async () => { await call(api.applyUpdates, inst.id, u); toast(`${u.length} Mod(s) aktualisiert`); load(); }, 'Aktualisieren');
+      else confirmModal(`${u.length} Update(s) gefunden:\n${u.map((x) => `${x.name} → ${x.version}`).join('\n')}`, async () => { await applyUpdatesWithProgress(inst, u); toast(`${u.length} Mod(s) aktualisiert`); load(); }, 'Aktualisieren');
     } catch (e) {
       toast(e.message, true);
     }
@@ -979,12 +1008,14 @@ function accounts(view) {
       h('button', { class: 'btn sm ghost danger', onclick: async () => { await call(api.removeAccount, a.uuid); await refresh(); render(); } }, svg(I.trash)))))
       : h('div', { class: 'empty panel' }, h('b', {}, 'Noch kein Konto')),
     h('h2', {}, 'Hinzufügen'),
-    h('div', { class: 'panel', style: 'padding:16px 18px;margin-bottom:14px' },
-      h('div', { style: 'font-weight:650' }, 'Ohne Azure: über den Minecraft Launcher spielen'),
-      h('div', { class: 'muted', style: 'margin:4px 0 12px' }, 'Der Counter Launcher installiert alles und öffnet den offiziellen Launcher mit deiner Instanz. Dort bist du schon mit Microsoft angemeldet – online spielen geht ganz normal.'),
-      h('button', { class: 'btn primary', onclick: async () => { await call(api.officialAccount); await refresh(); render(); toast('Spielen startet jetzt über den Minecraft Launcher'); } }, 'Über Minecraft Launcher spielen')),
-    h('div', { class: 'row' }, h('button', { class: 'btn', onclick: microsoftLogin }, 'Mit Microsoft anmelden'), h('span', { class: 'muted' }, 'oder'), nameInput,
-      h('button', { class: 'btn', onclick: async () => { try { await call(api.offline, nameInput.value.trim()); await refresh(); render(); } catch (e) { toast(e.message, true); } } }, 'Offline-Konto')));
+    h('div', { class: 'panel', style: 'padding:18px 20px;margin-bottom:14px' },
+      h('div', { style: 'font-weight:650;font-size:15px' }, 'Mit Microsoft anmelden'),
+      h('div', { class: 'muted', style: 'margin:4px 0 14px' }, 'Der normale Weg: online spielen, Skin und Server. Die Anmeldung öffnet sich im Browser.'),
+      h('button', { class: 'btn primary', onclick: microsoftLogin }, 'Mit Microsoft anmelden')),
+    h('div', { class: 'row', style: 'margin-bottom:14px' }, h('span', { class: 'muted' }, 'Nur zum Testen:'), nameInput,
+      h('button', { class: 'btn sm', onclick: async () => { try { await call(api.offline, nameInput.value.trim()); await refresh(); render(); } catch (e) { toast(e.message, true); } } }, 'Offline-Konto')),
+    h('div', { class: 'muted', style: 'font-size:12.5px' }, 'Klappt die Anmeldung nicht? ',
+      h('button', { class: 'btn sm ghost', title: 'Der Counter Launcher öffnet den offiziellen Minecraft Launcher mit deiner Instanz – dort bist du schon angemeldet', onclick: async () => { await call(api.officialAccount); await refresh(); render(); toast('Spielen startet jetzt über den Minecraft Launcher'); } }, 'Stattdessen über den Minecraft Launcher spielen')));
 }
 
 async function microsoftLogin() {

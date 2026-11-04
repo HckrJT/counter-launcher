@@ -25,8 +25,8 @@ function switchRow(label, key, def, after) {
   const b = h('button', { class: 'switch' + ((theme()[key] ?? def) ? ' on' : '') });
   b.addEventListener('click', async () => {
     const v = !(theme()[key] ?? def);
-    await saveTheme({ [key]: v });
     b.classList.toggle('on', v);
+    await saveTheme({ [key]: v });
     if (after) after(v);
   });
   return [h('label', {}, label), b];
@@ -272,7 +272,7 @@ function watchUpdates(view) {
     }
     if (!c.list.length || (state.selectedInstance && state.selectedInstance !== id) || !view.isConnected) return;
     const chip = h('button', { class: 'upd-chip', onclick: () => confirmModal(`${c.list.length} Mod-Update(s) für „${inst.name}“:\n${c.list.map((x) => `${x.name} → ${x.version}`).join('\n')}`, async () => {
-      await call(api.applyUpdates, id, c.list);
+      await applyUpdatesWithProgress(inst, c.list);
       updCache.delete(id);
       chip.remove();
       toast(`${c.list.length} Mod(s) aktualisiert`);
@@ -349,6 +349,17 @@ consoleSettings = function () {
       ...segRow('Würfelfarbe', 'cubeColor', [['accent', 'Akzent'], ['accent2', 'Zweitfarbe'], ['white', 'Weiß']], 'accent'),
       ...segRow('Seitenleiste', 'railIcons', [[false, 'Mit Text'], [true, 'Nur Icons']], false),
       ...rangeRow('Pixel-Schriftgröße', 'pixelSize', 80, 130, 5, 100, '%', (v) => document.documentElement.style.setProperty('--pixel-scale', String(v / 100))),
+      h('label', {}, 'Fenster „Laufende Spiele“ beim Start öffnen'),
+      (() => {
+        const b = h('button', { class: 'switch' + (state.settings.gamesWindow !== false ? ' on' : '') });
+        b.addEventListener('click', async () => {
+          const v = state.settings.gamesWindow === false;
+          b.classList.toggle('on', v);
+          state.settings.gamesWindow = v;
+          await call(api.setSettings, { gamesWindow: v });
+        });
+        return b;
+      })(),
       ...switchRow('Server auf der Startseite', 'serverBox', true),
       ...switchRow('Mod-Updates auf der Startseite anzeigen', 'homeUpdates', true),
       ...switchRow('Zufälliger Screenshot als Hintergrund', 'shotBg', false, (v) => v && loadShot(true)),

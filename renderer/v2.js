@@ -31,12 +31,16 @@
   // ---- reveal cards when they scroll into view, with a small stagger
   const io = new IntersectionObserver((entries) => {
     for (const e of entries) if (e.isIntersecting) { e.target.classList.add('v2-in'); io.unobserve(e.target); }
-  }, { threshold: 0.05 });
+  }, { threshold: 0, rootMargin: '300px 0px' });
   function reveal() {
     if (!motion()) return;
     let n = 0;
-    for (const el of document.querySelectorAll('#content .panel, #content .result, #content .preset, #content .tile, #content .lrow')) {
+    const all = document.querySelectorAll('#content .panel, #content .result, #content .preset, #content .tile, #content .lrow');
+    // long lists (mods, search results): no hide-and-reveal at all, that only costs time while scrolling
+    const many = all.length > 60;
+    for (const el of all) {
       if (el.dataset.v2) continue;
+      if (many && !el.matches('.panel')) { el.dataset.v2 = 1; continue; }
       el.dataset.v2 = 1;
       el.classList.add('v2-reveal');
       el.style.setProperty('--d', Math.min(n++, 14) * 40 + 'ms');

@@ -93,3 +93,12 @@ body.no-motion.v2::before, body.no-motion.v2 .brand .mark, body.no-motion.v2 .bt
 body.no-motion.v2 #content > *, body.no-motion.v2 .modal, body.no-motion.v2 .toast { animation: none !important; }
 body.no-motion.v2 .v2-reveal { opacity: 1; transform: none; }
 @media (prefers-reduced-motion: reduce) { body.v2::before { animation: none; } }
+
+/* ---- long lists: skip layout / paint of rows that are off screen, no blur per row, quicker reveal */
+.lrow, .result { content-visibility: auto; contain-intrinsic-size: auto 64px; backdrop-filter: none !important; }
+.list .btn, .list .seg, .list input, .list select { backdrop-filter: none !important; }
+body.v2 .v2-reveal.v2-in { transition-duration: 0.35s, 0.4s; }
+
+/* ---- soft re-render (same page redrawn after a change): no fade-in again, nothing blinks */
+.page.soft, .page.soft .stagger > *, .page.soft .panel, .page.soft .lrow, .page.soft .tile { animation: none !important; }
+.page.soft .v2-reveal { opacity: 1 !important; transform: none !important; transition: none !important; }

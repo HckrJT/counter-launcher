@@ -105,4 +105,4 @@ async function checkCounterJar() {
   }
 }
 
-module.exports = { init, check, install, state: () => lastState, newestCounterJar, counterFamilies, configured };
+module.exports = { init, check, install, state: () => lastState, newestCounterJar, counterFamilies, configured, checkCounterJar, counterVersionOf: versionOf };

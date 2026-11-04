@@ -85,12 +85,27 @@ function accountMenu(anchor) {
 // ================================================================= routing with the extra pages
 const extraPages = {};
 const extraNames = {};
+let lastRoute = '';
 render = async function () {
   const view = h('div', { class: 'page' });
-  await window.transition(() => {
+  const key = JSON.stringify(route);
+  // same page again (a setting was changed, a game started ...): swap without transition and keep the scroll position;
+  // only a real page change fades and starts at the top
+  const soft = key === lastRoute && $('#content').firstElementChild;
+  lastRoute = key;
+  if (soft) {
+    const top = $('#content').scrollTop;
+    view.style.minHeight = $('#content').scrollHeight + 'px';
+    view.classList.add('soft');
     $('#content').replaceChildren(view);
-    $('#content').scrollTop = 0;
-  });
+    $('#content').scrollTop = top;
+    view.dataset.soft = top;
+  } else {
+    await window.transition(() => {
+      $('#content').replaceChildren(view);
+      $('#content').scrollTop = 0;
+    });
+  }
   const pages = { ...extraPages, home, instances: instancesPage, instance, browse, project, import: importPage, accounts, settings, news: (v) => newsPage(v) };
   const names = { ...extraNames, news: 'Neuigkeiten', home: 'Spielen', instances: 'Instanzen', instance: 'Instanz', browse: 'Entdecken', project: 'Projekt', import: 'Importieren', accounts: 'Konten', settings: 'Einstellungen' };
   $('#crumbs').replaceChildren(h('span', {}, 'Counter'), '/', h('b', {}, route.page === 'instance' ? (instById(route.id) || selected())?.name || '' : names[route.page] || ''));
@@ -99,6 +114,11 @@ render = async function () {
     await (pages[route.page] || home)(view, route);
   } catch (e) {
     view.append(h('div', { class: 'empty' }, h('b', {}, 'Fehler'), e.message));
+  }
+  if (soft) {
+    view.style.minHeight = '';
+    $('#content').scrollTop = Number(view.dataset.soft) || 0;
+    delete view.dataset.soft;
   }
   if (viewer) viewer.renderPaused = !viewer.canvas.isConnected;
 };
