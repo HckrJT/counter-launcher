@@ -416,17 +416,6 @@ button.lib-group:hover { color: var(--muted); }
 .sc { display: flex; align-items: center; gap: 12px; padding: 8px 0; }
 kbd { font: 600 11.5px Consolas, monospace; padding: 3px 8px; border-radius: 6px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.14); border-bottom-width: 2px; white-space: nowrap; }
 textarea { resize: vertical; }
-
-.account-hero { position: relative; overflow: hidden; padding: 26px 28px; margin: 8px 0 24px; border: 1px solid color-mix(in srgb, var(--accent) 42%, transparent); background: linear-gradient(120deg, color-mix(in srgb, var(--accent) 16%, var(--s1)), rgba(255,255,255,.035)); }
-.account-hero::after { content: ''; position: absolute; width: 240px; height: 240px; right: -80px; top: -110px; border-radius: 50%; background: color-mix(in srgb, var(--accent) 20%, transparent); filter: blur(35px); pointer-events: none; }
-.account-hero .eyebrow { color: var(--accent); font: 700 10px Silkscreen, monospace; letter-spacing: .12em; text-transform: uppercase; }
-.account-hero h1 { position: relative; z-index: 1; margin: 6px 0 3px; font-size: clamp(26px, 4vw, 40px); }
-.account-hero .product-line { position: relative; z-index: 1; color: var(--muted); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
-.account-hero p { position: relative; z-index: 1; max-width: 610px; margin: 14px 0 18px; color: var(--muted); }
-.account-hero .row { position: relative; z-index: 1; }
-.official-secondary { margin: 0 0 24px; padding: 11px 14px; border: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.025); color: var(--muted); font-size: 12px; }
-.official-secondary strong { color: var(--text); font-weight: 650; }
-.ai-provider-inline { min-width: 138px; max-width: 170px; }
 /* layout options */
 body.rail-labels { grid-template-columns: 96px 248px 1fr; }
 body.rail-labels.no-library { grid-template-columns: 96px 0 1fr; }

@@ -20,7 +20,41 @@ protocol.registerSchemesAsPrivileged([{ scheme: 'clmedia', privileges: { standar
 const { Notification } = require('electron');
 
 let win;
-const running = new Map();
+// every started game is a session of its own: the same instance can run several times
+const games = new Map(); // sid -> { sid, id, name, version, child, started, log }
+let gameSeq = 0;
+const running = {
+  has: (id) => [...games.values()].some((g) => g.id === id),
+  keys: () => new Set([...games.values()].map((g) => g.id)).values(),
+};
+let gamesWin = null;
+const gameList = () => [...games.values()].map(({ sid, id, name, version, started }) => ({ sid, id, name, version, started }));
+const sendGames = () => {
+  send('games', gameList());
+  if (gamesWin && !gamesWin.isDestroyed()) gamesWin.webContents.send('games', gameList());
+};
+/** the "Laufende Spiele" window: all running games with live log (opens by itself when a game starts) */
+function openGamesWindow(focus = true) {
+  if (gamesWin && !gamesWin.isDestroyed()) {
+    if (focus) {
+      if (gamesWin.isMinimized()) gamesWin.restore();
+      gamesWin.show();
+      gamesWin.focus();
+    }
+    return;
+  }
+  gamesWin = new BrowserWindow({
+    width: 880, height: 560, minWidth: 560, minHeight: 360, frame: false, backgroundColor: '#0b0b14', show: false,
+    icon: path.join(__dirname, 'renderer', 'icon.png'),
+    webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, nodeIntegration: false, sandbox: true },
+  });
+  gamesWin.loadFile(path.join(__dirname, 'renderer', 'games.html'));
+  // opens next to the launcher without taking the focus away from the game that is starting
+  gamesWin.once('ready-to-show', () => (focus ? gamesWin.show() : gamesWin.showInactive()));
+  gamesWin.setMenuBarVisibility(false);
+  gamesWin.webContents.on('will-navigate', (e) => e.preventDefault());
+  gamesWin.on('closed', () => { gamesWin = null; });
+}
 const stopped = new Set();
 function notify(title, body) {
   if (Notification.isSupported() && store.get().settings.notifications !== false) new Notification({ title, body, icon: path.join(__dirname, 'renderer', 'icon.png') }).show();
@@ -47,6 +81,8 @@ function createWindow() {
     return { action: 'deny' };
   });
   win.webContents.on('will-navigate', (e) => e.preventDefault());
+  // the games window belongs to the launcher: closing the launcher closes it too
+  win.on('closed', () => { if (gamesWin && !gamesWin.isDestroyed()) gamesWin.close(); });
   // test runs only (CL_DATA + CL_EVAL): run a script in the window after loading
   if (process.env.CL_DATA && process.env.CL_EVAL) win.webContents.once('did-finish-load', () => setTimeout(() => win.webContents.executeJavaScript(fs.readFileSync(process.env.CL_EVAL, 'utf8')).catch((e) => console.log('CL_EVAL', e.message)), 2500));
 }
@@ -106,11 +142,22 @@ const handle = (name, fn) =>
   });
 
 // ---------------------------------------------------------------- window
-ipcMain.on('win', (_e, action) => {
-  if (action === 'min') win.minimize();
-  else if (action === 'max') win.isMaximized() ? win.unmaximize() : win.maximize();
-  else if (action === 'close') win.close();
+ipcMain.on('win', (e, action) => {
+  // the small games window has the same buttons: act on the window that sent it
+  const w = BrowserWindow.fromWebContents(e.sender) || win;
+  if (action === 'min') w.minimize();
+  else if (action === 'max') w.isMaximized() ? w.unmaximize() : w.maximize();
+  else if (action === 'close') w.close();
 });
+handle('games:list', () => gameList());
+handle('games:log', (sid) => games.get(sid)?.log.join('') || '');
+handle('games:stop', (sid) => {
+  const g = games.get(sid);
+  if (!g) return;
+  stopped.add(sid);
+  g.child.kill();
+});
+handle('games:open', () => openGamesWindow(true));
 
 // ---------------------------------------------------------------- state
 handle('state', () => {
@@ -235,7 +282,7 @@ handle('log:read', (file) => extras.readLog(file));
 handle('updates:apply', (id, list) => {
   const inst = instanceById(id);
   labs.backupMods(inst, 'vor-update');
-  return extras.applyUpdates(inst, list);
+  return extras.applyUpdates(inst, list, (done, total, name) => send('updates:progress', { id, done, total, name }));
 });
 handle('updates:check', async (id) => {
   const inst = instanceById(id);
@@ -327,14 +374,36 @@ handle('instance:duplicate', async (id) => {
 
 // ---------------------------------------------------------------- import
 handle('import:scan', () => importers.scan());
-handle('import:found', (found, mcVersion, parts) => importers.importFound(found, mcVersion, (t) => send('status', t), parts));
-handle('import:file', async () => {
-  const r = await dialog.showOpenDialog(win, { properties: ['openFile'], filters: [{ name: 'Modpacks', extensions: ['mrpack', 'zip'] }] });
+/** what came along (mods, settings, servers, packs), so the import page can show it right away */
+const importSummary = (inst) => {
+  const s = importers.summary(inst);
+  try {
+    s.serverCount = extras.servers(inst).length;
+  } catch {
+    s.serverCount = 0;
+  }
+  return s;
+};
+handle('import:found', async (found, mcVersion, parts) => {
+  const inst = await importers.importFound(found, mcVersion, (t) => send('status', t), parts);
+  return { ...inst, summary: importSummary(inst) };
+});
+handle('import:file', async (from) => {
+  // open the file dialog where that launcher saves its exports
+  const nrcExports = path.join(app.getPath('appData'), 'norisk', 'NoRiskClientV3', 'exports');
+  const defaultPath = from === 'norisk' && fs.existsSync(nrcExports) ? nrcExports : app.getPath('downloads');
+  const r = await dialog.showOpenDialog(win, { defaultPath, properties: ['openFile'], filters: [{ name: 'Profil-Export', extensions: ['noriskpack', 'mrpack', 'zip'] }] });
   if (r.canceled) return null;
   const file = r.filePaths[0];
   const status = (t) => send('status', t);
-  if (file.endsWith('.mrpack')) return { instance: await importers.importMrpack(file, status), skipped: [] };
-  return curseforge.importModpack(file, status);
+  let out;
+  // the ending says little (.zip can be CurseForge, Prism or a renamed export): look inside
+  const kind = file.endsWith('.mrpack') ? 'modrinth' : await importers.zipKind(file);
+  if (kind === 'modrinth') out = { instance: await importers.importMrpack(file, status), skipped: [] };
+  else if (kind === 'curseforge') out = await curseforge.importModpack(file, status);
+  else out = { instance: await importers.importPack(file, status), skipped: [] };
+  status('');
+  return { ...out, summary: importSummary(out.instance) };
 });
 
 // ---------------------------------------------------------------- accounts
@@ -381,6 +450,41 @@ function addAccount(acc) {
   s.activeAccount = acc.uuid;
   store.save();
 }
+
+/**
+ * Puts the newest Counter mod into the given instances right now (without starting the game): fetches a newer release
+ * first when there is one, replaces the old jar, adds Fabric API if missing and switches "Counter" on for the instance.
+ * Only Fabric instances can run Counter.
+ */
+async function updateCounter(ids, status = () => {}) {
+  try {
+    await updates.checkCounterJar();
+  } catch {
+    // offline: the newest jar that is already here is used
+  }
+  const out = [];
+  for (const id of ids) {
+    const inst = instanceById(id);
+    if (!inst) continue;
+    const row = { id, name: inst.name, ok: false };
+    try {
+      if (inst.loader !== 'fabric') throw new Error('nur für Fabric-Instanzen');
+      const mods = path.join(store.dirs.instance(id), 'mods');
+      const before = fs.existsSync(mods) ? fs.readdirSync(mods).find((f) => /^counter-client-.*.jar$/.test(f)) : null;
+      await prepareCounter({ ...inst, counter: true }, status);
+      const after = fs.readdirSync(mods).find((f) => /^counter-client-.*.jar$/.test(f));
+      inst.counter = true;
+      store.save();
+      Object.assign(row, { ok: true, from: before ? updates.counterVersionOf(before) : null, to: updates.counterVersionOf(after || '') || after, same: before === after });
+    } catch (e) {
+      row.error = e.message;
+    }
+    out.push(row);
+  }
+  status('');
+  return out;
+}
+handle('counter:update', (ids) => updateCounter([].concat(ids), (t) => send('status', t)));
 
 // ---------------------------------------------------------------- play
 async function prepareCounter(inst, status) {
@@ -452,11 +556,16 @@ handle('play', async (id, opts = {}) => {
     return { official: profile };
   }
   const started = Date.now();
+  const sid = 'g' + ++gameSeq;
+  const gameLog = [];
   const tail = [];
   let firstLine = 0;
   let startRecorded = false;
   const child = await mc.launch(inst, auth.unprotectAccount(acc), status, (line) => {
     send('log', { id, line });
+    gameLog.push(line);
+    if (gameLog.length > 4000) gameLog.splice(0, 1000);
+    if (gamesWin && !gamesWin.isDestroyed()) gamesWin.webContents.send('game:log', { sid, line });
     // start time = from the first game output to "Sound engine started" (the game is ready then)
     if (!firstLine) firstLine = Date.now();
     if (!startRecorded && /Sound engine started/.test(line)) {
@@ -467,11 +576,13 @@ handle('play', async (id, opts = {}) => {
     tail.push(line);
     if (tail.length > 80) tail.shift();
   }, opts);
-  running.set(id, child);
+  games.set(sid, { sid, id, name: games.size && [...games.values()].some((g) => g.id === id) ? `${inst.name} (${[...games.values()].filter((g) => g.id === id).length + 1})` : inst.name, version: `${inst.mcVersion} · ${inst.loader}`, child, started, log: gameLog });
   inst.lastPlayed = Date.now();
   store.save();
   send('status', '');
   send('running', [...running.keys()]);
+  sendGames();
+  if (s.settings.gamesWindow !== false) openGamesWindow(false);
   if (s.settings.closeOnLaunch) win.minimize();
   // Discord status while the game runs (silent when Discord is not open)
   let rpc = null;
@@ -481,28 +592,31 @@ handle('play', async (id, opts = {}) => {
     rpc.connect().catch(() => {});
   }
   child.on('exit', (code) => {
-    running.delete(id);
+    games.delete(sid);
     rpc?.close();
     const ended = Date.now();
     inst.playTime = (inst.playTime || 0) + (ended - started);
     inst.sessions = [...(inst.sessions || []), { start: started, end: ended }].slice(-60);
     store.save();
     // a crash: non zero exit code (killed by "stop" counts as normal)
-    if (code && code !== 0 && !stopped.has(id)) {
+    if (code && code !== 0 && !stopped.has(sid) && !stopped.has(id)) {
       inst.crashes = [...(inst.crashes || []), { time: ended, code }].slice(-20);
       store.save();
       send('crash', { id, name: inst.name, code, tail: tail.join('').split('\n').slice(-40).join('\n') });
       notify(`${inst.name} ist abgestürzt`, 'Klicke im Counter Launcher auf „Logs“, um den Fehler zu sehen.');
     }
+    stopped.delete(sid);
     stopped.delete(id);
     send('running', [...running.keys()]);
+    sendGames();
     send('log', { id, line: `\n[Counter Launcher] Minecraft closed (${code})\n` });
   });
   return true;
 });
+// stops every session of the instance
 handle('stop', (id) => {
   stopped.add(id);
-  running.get(id)?.kill();
+  for (const g of games.values()) if (g.id === id) g.child.kill();
 });
 handle('backup:create', (id, world) => tools.backupWorld(instanceById(id), world));
 handle('backup:list', (id) => tools.listBackups(instanceById(id)));
@@ -572,7 +686,7 @@ handle('bg:useShader', async (name) => {
   }
   return setVideo(b.file);
 });
-// KI-Assistent (Groq, Schlüssel des Nutzers)
+// KI-Assistent über die geteilten Counter AI-Provider
 const assistant = require('./src/core/assistant');
 const studio = require('./src/core/studio');
 const aiProxy = require('./src/core/ai-proxy');
@@ -609,6 +723,12 @@ async function aiApply(inst, a) {
     const created = await HANDLERS['instance:create']({ name: String(a.name || 'KI-Instanz').slice(0, 40), mcVersion: String(a.mcVersion || ''), loader: a.loader || 'fabric', counter: !!a.counter });
     send('theme:changed');
     return created && created.id ? `ID ${created.id}` : '';
+  }
+  if (a.kind === 'update_counter') {
+    const ids = a.all ? store.get().instances.filter((i) => i.loader === 'fabric').map((i) => i.id) : [(instanceById(a.id) || inst).id];
+    const rows = await updateCounter(ids, (t) => send('status', t));
+    send('theme:changed');
+    return rows.map((r) => `${r.name}: ${r.ok ? (r.same ? 'schon aktuell' : `Counter ${r.to}`) : r.error}`).join('; ');
   }
   if (a.kind === 'launch_instance') {
     const target = instanceById(a.id) || inst;
@@ -702,21 +822,15 @@ async function buildFromProjects(info, status) {
   return { id: inst.id, name: inst.name, installed: ok.length, failed };
 }
 /**
- * Providers to try, best first: the one chosen in the studio (if it has a key), then every other provider with a key
- * (strongest first), the old Groq key, and last the shared Counter AI. When one is used up the next takes over.
+ * The launcher uses the shared Counter AI providers only. The worker keeps the
+ * provider keys server-side, so no user key is required or stored locally.
  */
 function aiChain() {
   const st = store.get().settings;
-  const keys = { ...(st.aiKeys || {}) };
-  if (st.groqKey && !keys.groq) keys.groq = st.groqKey;
-  if (st.openrouterKey && !keys.openrouter) keys.openrouter = st.openrouterKey;
-  const order = ['ollama', 'gemini', 'mistral', 'cerebras', 'nvidia', 'openrouter', 'groq', ...(process.env.CL_AI_TEST_URL ? ['mock'] : [])];
   const pick = st.aiProvider && st.aiProvider !== 'auto' ? st.aiProvider : null;
-  const chain = [];
-  if (pick && pick !== 'proxy' && keys[pick]) chain.push({ id: pick, key: keys[pick] });
-  for (const id of order) if (keys[id] && !chain.some((c) => c.id === id)) chain.push({ id, key: keys[id] });
-  if (aiProxy.url && (pick === 'proxy' || !chain.length || st.aiShareFallback !== false)) chain.push({ id: 'proxy', key: 'proxy' });
-  return chain;
+  if (!aiProxy.url) return [];
+  if (pick === 'proxy-openrouter') return [{ id: 'proxy-openrouter', key: 'proxy:openrouter' }];
+  return [{ id: 'proxy', key: 'proxy' }, ...(st.aiShareFallback === false ? [] : [{ id: 'proxy-openrouter', key: 'proxy:openrouter' }])];
 }
 handle('ai:ask', async (history, instId, auto, goal, prefs) => {
   const s = store.get();
@@ -766,36 +880,11 @@ handle('ai:models', () => {
 });
 handle('ai:providers', () => {
   const st = store.get().settings;
-  const have = { ...(st.aiKeys || {}) };
-  if (st.groqKey && !have.groq) have.groq = st.groqKey;
-  if (st.openrouterKey && !have.openrouter) have.openrouter = st.openrouterKey;
-  return { list: assistant.providerList().map((p) => ({ ...p, hasKey: p.id === 'proxy' ? !!aiProxy.url : !!have[p.id] })), selected: st.aiProvider || 'auto', shareFallback: st.aiShareFallback !== false };
-});
-handle('ai:setKey', async (id, key) => {
-  if (!assistant.PROVIDERS[id] || id === 'proxy') throw new Error('Unbekannter Anbieter');
-  const st = store.get().settings;
-  st.aiKeys = { ...(st.aiKeys || {}) };
-  key = String(key || '').trim();
-  if (!key) {
-    delete st.aiKeys[id];
-    if (id === 'groq') st.groqKey = '';
-  } else {
-    if (id !== 'ollama' && (key.length < 15 || /\s/.test(key))) throw new Error('Das sieht nicht wie ein Schlüssel aus');
-    if (id === 'ollama' && !/^https?:\/\//i.test(key)) key = 'ollama';
-    // check it right away: a wrong key is reported here and not in the middle of a question
-    st.aiKeys[id] = key;
-    try {
-      const m = await assistant.models(key, id);
-      if (!m.ids.length) throw new Error('Keine Modelle');
-      await assistant.checkKey(id, key);
-    } catch (e) {
-      delete st.aiKeys[id];
-      throw new Error(e.badKey || /Schlüssel/.test(e.message) ? e.message : `Der Schlüssel funktioniert nicht (${e.message})`);
-    }
-    if (id === 'groq') st.groqKey = key;
-  }
-  store.save();
-  return true;
+  const shared = aiProxy.url ? [
+    { id: 'proxy', name: 'Counter AI · Groq (geteilt)', note: 'Geteilter Counter-Server mit dem Cloudflare-Groq-Schlüssel.', keyUrl: '', hint: '', hasKey: true },
+    { id: 'proxy-openrouter', name: 'Counter AI · OpenRouter (geteilt)', note: 'Geteilter Counter-Server mit dem Cloudflare-OpenRouter-Schlüssel.', keyUrl: '', hint: '', hasKey: true },
+  ] : [];
+  return { list: shared, selected: st.aiProvider || 'auto', shareFallback: st.aiShareFallback !== false };
 });
 handle('server:ping', (address) => social.ping(address));
 handle('servers:known', () => social.knownServers());

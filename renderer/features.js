@@ -119,6 +119,20 @@ async function instance(view, r) {
         h('div', { class: 'row', style: 'margin-top:6px' }, h('span', { class: 'tag a' }, inst.mcVersion), h('span', { class: 'tag' }, loaderName(inst.loader)), inst.counter && h('span', { class: 'tag a' }, 'Counter'), inst.group && h('span', { class: 'tag' }, inst.group), inst.importedFrom && h('span', { class: 'tag' }, `aus ${inst.importedFrom}`),
           h('span', { class: 'muted', style: 'font-size:12px' }, `Spielzeit ${fmtTime(inst.playTime)} · zuletzt ${ago(inst.lastPlayed)}`))),
       h('button', { class: 'btn', title: inst.pinned ? 'Von Favoriten entfernen' : 'Zu Favoriten', onclick: async () => { await call(api.updateInstance, inst.id, { pinned: !inst.pinned }); await refresh(); render(); } }, inst.pinned ? '★' : '☆'),
+      inst.loader === 'fabric' ? h('button', { class: 'btn', title: 'Neueste Counter-Mod in diese Instanz laden', onclick: async (e) => {
+        const b = e.currentTarget;
+        b.disabled = true;
+        try {
+          const [r] = await call(api.updateCounter, inst.id);
+          if (!r || !r.ok) toast(`Counter: ${(r && r.error) || 'fehlgeschlagen'}`, true);
+          else toast(r.same ? `Counter ${r.to} ist schon aktuell` : `Counter ${r.to} ist drin${r.from ? ` (vorher ${r.from})` : ''}`);
+          await refresh();
+          render();
+        } catch (err) {
+          toast(err.message, true);
+        }
+        b.disabled = false;
+      } }, 'Counter aktualisieren') : null,
       h('button', { class: 'btn', title: 'Ordner öffnen', onclick: () => call(api.openInstance, inst.id) }, svg(I.folder)),
       h('button', { class: 'btn', title: 'Konsole', onclick: () => $('#console').classList.toggle('hidden') }, svg(I.term)),
       playButton(inst))));

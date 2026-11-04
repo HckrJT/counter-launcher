@@ -7,7 +7,7 @@
   <meta name="description" content="Counter ist dein Minecraft-Launcher für saubere Instanzen, Mods und den Counter-Look.">
   <title>Counter — Minecraft, aber auf deine Art.</title>
   <link rel="icon" href="assets/counter-icon.png">
-  <link rel="stylesheet" href="styles.css?v=5">
+  <link rel="stylesheet" href="styles.css?v=3">
 </head>
 <body>
   <div class="cursor-glow" aria-hidden="true"></div>
@@ -34,18 +34,17 @@
     <section class="hero section-shell">
       <div class="hero-atmosphere" aria-hidden="true"><div class="hero-moon"></div><div class="hero-grid"></div><i></i><i></i><i></i><i></i><i></i><i></i></div>
       <div class="hero-copy reveal">
-        <p class="eyebrow"><span class="eyebrow-dot"></span> Counter · dein Minecraft-Setup</p>
-        <h1>Microsoft<br><em>anmelden.</em></h1>
-        <p class="hero-product">Minecraft Launcher</p>
-        <p class="hero-lede">Melde dich einmal mit deinem Microsoft-Konto an. Counter kümmert sich danach um Instanzen, Mods und den Start.</p>
+        <p class="eyebrow"><span class="eyebrow-dot"></span> Counter Launcher · aktuell für Windows</p>
+        <h1>Minecraft,<br><em>sauber gestartet.</em></h1>
+        <p class="hero-lede">Counter hält Instanzen, Mods und dein Microsoft-Konto an einem Ort. Weniger Ordner suchen. Mehr spielen.</p>
         <div class="hero-actions">
-          <a class="button button-primary" href="#account">
-            <span>Mit Microsoft anmelden</span>
-            <span class="button-arrow" aria-hidden="true">→</span>
+          <a class="button button-primary config-link" data-config-link="download" href="#downloads">
+            <span>Launcher herunterladen</span>
+            <span class="button-arrow" aria-hidden="true">↗</span>
           </a>
-          <a class="button button-ghost config-link" data-config-link="download" href="#downloads">Counter Launcher laden <span aria-hidden="true">↗</span></a>
+          <a class="button button-ghost" href="#features">Features ansehen <span aria-hidden="true">↓</span></a>
         </div>
-        <p class="microcopy"><span class="status-dot"></span> Offizieller Microsoft-Login · Windows-Release 1.20.8</p>
+        <p class="microcopy"><span class="status-dot"></span> Windows · Microsoft Login · Modrinth</p>
       </div>
       <div class="hero-art reveal reveal-delay" aria-label="Vorschau der Counter Launcher Oberfläche">
         <div class="window-chrome">
@@ -88,6 +87,23 @@
       </div>
     </section>
 
+    <section class="game-section section-shell section-block" id="ingame">
+      <div class="section-heading reveal">
+        <p class="eyebrow">Counter im Spiel</p>
+        <h2>Information,<br><em>wo sie hingehört.</em></h2>
+        <p>Der gleiche Look läuft weiter, wenn Minecraft startet: klare Module, kleine Abstände, keine überladene Oberfläche.</p>
+      </div>
+      <div class="game-preview reveal" data-tilt>
+        <div class="game-sky"><span class="game-cloud cloud-a"></span><span class="game-cloud cloud-b"></span><span class="game-moon"></span><span class="game-star star-a"></span><span class="game-star star-b"></span></div>
+        <div class="game-hud hud-top"><span class="hud-brand">COUNTER <b>1.15.0</b></span><span class="hud-status">● 60 FPS</span></div>
+        <div class="game-hud hud-left"><span><b>POSITION</b> 124 / 72 / -38</span><span><b>BIOME</b> Forest</span><span><b>TIME</b> 14:32</span></div>
+        <div class="game-hud hud-right"><span class="health">♥ ♥ ♥ ♥ ♥ ♥ ♥ ♥ ♥ ♥</span><span class="armor">▰ ▰ ▰ ▰ ▰ ▰ ▰ ▰ ▰ ▰</span><span class="hud-quest">COUNTER MODULES <b>12 / 24</b></span></div>
+        <div class="game-crosshair">+</div>
+        <div class="game-hotbar"><span class="slot selected">◇</span><span class="slot">▧</span><span class="slot">◈</span><span class="slot">▣</span><span class="slot">◌</span><span class="slot">◒</span><span class="slot">▦</span><span class="slot">◉</span><span class="slot">◫</span></div>
+        <div class="game-caption"><span>COUNTER MOD</span><strong>Dein HUD. Deine Regeln.</strong><i>26.1.2 · Fabric</i></div>
+      </div>
+    </section>
+
     <section class="split-section section-shell section-block" id="account">
       <div class="split-art reveal"><div class="login-card"><div class="login-logo"><img src="assets/counter-icon.png" alt="" width="48" height="48"></div><span class="tiny-label">ANMELDUNG</span><h3>Microsoft-Konto<br>verbinden.</h3><p>Der Launcher öffnet den offiziellen Microsoft-Gerätecode-Flow in deinem Browser.</p><div class="login-code"><span>ABCD</span><span>EFGH</span></div><small>microsoft.com/devicelogin</small><div class="login-check">✓ Login bereit für Minecraft Services</div></div></div>
       <div class="split-copy reveal reveal-delay"><p class="eyebrow">Anmeldung</p><h2>Dein Microsoft-Konto.<br><em>Kein Umweg.</em></h2><p>Counter nutzt den offiziellen Gerätecode-Flow. Du meldest dich bei Microsoft an, nicht bei einem zusätzlichen Counter-Konto.</p><div class="check-list"><div><span>✓</span><p><strong>Offizieller Login</strong><br>Microsoft, Xbox Live und Minecraft Services.</p></div><div><span>✓</span><p><strong>Lokal gespeichert</strong><br>Sessions werden vom Betriebssystem geschützt.</p></div><div><span>!</span><p><strong>Einmalig nötig</strong><br>Die App-ID muss für Minecraft Services freigegeben sein.</p></div></div></div>
@@ -119,29 +135,18 @@
     </section>
 
     <section class="download-section section-shell section-block" id="downloads">
-      <div class="download-panel reveal"><div><p class="eyebrow">Counter Launcher 1.20.8</p><h2>Einmal laden.<br><em>Dann spielen.</em></h2><p>Der Windows-Installer liegt im GitHub Release. Updates kommen später direkt über den Launcher.</p></div><div class="download-actions"><a class="button button-primary config-link" data-config-link="download" href="#downloads">Windows-Installer <span>↗</span></a><a class="text-link config-link" data-config-link="repo" href="#downloads">GitHub-Repository <span>→</span></a></div></div>
-    </section>
-
-    <section class="ops-section section-shell section-block" id="checklist">
-      <div class="ops-heading"><p class="eyebrow">Stand</p><h2>Was schon<br><em>bereit ist.</em></h2><p>Ein kleiner Überblick für alle, die wissen wollen, wie Counter veröffentlicht wird.</p></div>
-      <div class="ops-list">
-        <div class="ops-row"><span class="ops-state open">01</span><div><strong>Azure / Minecraft App-ID</strong><p>App-ID und Minecraft-Services-Freigabe in Azure/Minecraft prüfen.</p></div><span class="ops-label">OFFEN</span></div>
-        <div class="ops-row"><span class="ops-state done">02</span><div><strong>Launcher-Login</strong><p>Gebündelter Microsoft-Login ist im master-basierten Stand enthalten.</p></div><span class="ops-label done-label">ENTHALTEN</span></div>
-        <div class="ops-row"><span class="ops-state open">03</span><div><strong>Release bauen</strong><p>Windows-Installer mit <code>npm run dist</code> erzeugen, signieren und als GitHub Release hochladen.</p></div><span class="ops-label">OFFEN</span></div>
-        <div class="ops-row"><span class="ops-state open">04</span><div><strong>Hosting, Domain & DNS</strong><p>Website hosten, Domain verbinden und die echten Links in <code>website/app.js</code> eintragen.</p></div><span class="ops-label">OFFEN</span></div>
-        <div class="ops-row"><span class="ops-state open">05</span><div><strong>GitHub Student Benefits</strong><p>Student Pack für Hosting, Domain, CI/CD oder private Repositories nutzen — erst nach Aktivierung verlinken.</p></div><span class="ops-label">OFFEN</span></div>
-      </div>
+      <div class="download-panel reveal"><div><p class="eyebrow">Counter Launcher</p><h2>Einmal laden.<br><em>Dann spielen.</em></h2><p>Der Windows-Installer liegt im GitHub Release. Updates kommen später direkt über den Launcher.</p></div><div class="download-actions"><a class="button button-primary config-link" data-config-link="download" href="#downloads">Windows-Installer <span>↗</span></a><a class="text-link config-link" data-config-link="repo" href="#downloads">GitHub-Repository <span>→</span></a></div></div>
     </section>
   </main>
 
   <footer class="site-footer section-shell">
     <a class="brand" href="#top"><img src="assets/counter-icon.png" alt="" width="34" height="34"><span>COUNTER</span></a>
     <p>Ein Launcher. Viele Wege zu spielen.</p>
-    <div><a href="#features">Features</a><a href="#faq">FAQ</a><a href="#checklist">Launch-Checkliste</a></div>
+    <div><a href="#features">Features</a><a href="#faq">FAQ</a><a href="https://github.com/HckrJT/counter-launcher">GitHub</a></div>
     <small>© <span id="year"></span> Counter · Kein offizieller Mojang/Microsoft-Dienst.</small>
   </footer>
 
   <div class="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=5"></script>
+  <script src="app.js?v=3"></script>
 </body>
 </html>

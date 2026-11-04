@@ -539,6 +539,7 @@ body.layout-console[data-page="assistant"] #content { overflow: hidden; }
 .ai-page[data-anim="off"] *, .ai-page[data-anim="off"] *::before, .ai-page[data-anim="off"] *::after { animation: none !important; transition: none !important; }
 .ai-page[data-anim="calm"] .counti .ct-body, .ai-page[data-anim="calm"] .counti .ct-shadow { animation-duration: 4.8s; }
 .ai-head { flex-wrap: wrap; }
+.ai-provider-inline { min-width: 138px; max-width: 190px; }
 .ai-head .seg button { padding: 0 10px; }
 .ai-head .sub { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 260px; }
 .ai-body { flex: 1; min-height: 0; display: flex; gap: 12px; }

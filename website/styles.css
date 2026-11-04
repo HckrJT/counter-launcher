@@ -44,6 +44,3 @@ body:after{content:"";position:fixed;inset:0;z-index:19;pointer-events:none;back
 .game-caption{position:absolute;z-index:4;left:28px;bottom:30px;display:grid;gap:3px;text-shadow:0 2px 5px #000}.game-caption span{color:#b995ff;font:700 8px Silkscreen;letter-spacing:.1em}.game-caption strong{font:400 25px Georgia,serif}.game-caption i{font-style:normal;color:#a2a3b8;font-size:11px}
 @keyframes cloud-drift{0%{transform:translateX(-30px)}50%{transform:translateX(60px)}100%{transform:translateX(-30px)}}@media (max-width:620px){.game-preview{height:470px}.hud-right{top:auto;bottom:100px;right:15px;transform:scale(.75);transform-origin:right bottom}.hud-left{left:15px;top:70px;transform:scale(.75);transform-origin:left top}.hud-top{left:15px;right:15px}.game-hotbar{bottom:20px;transform:translateX(-50%) scale(.72)}.game-caption{left:15px;bottom:78px}.game-caption strong{font-size:20px}}
 @media (prefers-reduced-motion:reduce){.cursor-glow,.cursor-ring{display:none}.game-preview{transform:none!important}.game-cloud,.game-moon,.game-star{animation:none}}
-
-.hero-product{margin:-16px 0 18px;color:rgba(207,201,235,.58);font:700 11px Silkscreen,monospace;letter-spacing:.16em;text-transform:uppercase}
-.hero-copy h1{margin-bottom:10px}

@@ -1,39 +1,63 @@
-# Counter Launcher: Microsoft-Anmeldung
+<div align="center">
 
-The launcher uses Microsoft's OAuth 2.0 authorization-code flow with PKCE. The
-sign-in page opens in the user's normal browser; no Microsoft client secret is
-stored in the launcher. After Microsoft returns the token, the launcher
-performs the Xbox Live, XSTS, and Minecraft Services exchanges needed to start
-the game directly.
+# Counter Launcher
 
-## Azure configuration
+**Minecraft, sauber gestartet.**
+Instanzen, Mods, Microsoft-Login und ein KI-Assistent in einem Launcher – für Windows.
 
-The packaged launcher already contains the approved application (client) ID
-`bb5d17f5-97e1-4cb0-b2e8-de162f69470d`; players do not need an Azure account or
-any Azure setting. Under **Accounts**, they can click **Mit Microsoft
-anmelden** immediately.
+[**Download**](https://github.com/HckrJT/counter-launcher/releases/latest) · [Website](https://hckrjt.github.io/counter-launcher/) · [Probleme melden](https://github.com/HckrJT/counter-launcher/issues)
 
-For development or an internal fork, set `COUNTER_AZURE_CLIENT_ID` before
-starting the launcher to override the bundled ID. Do not put a client secret
-in the repository or the packaged launcher.
+</div>
 
-The registered app must use:
+---
 
-1. **Supported account types:** Personal Microsoft accounts only (consumer accounts).
-2. **Authentication platform:** Mobile and desktop applications.
-3. **Redirect URI:**
-   `http://localhost:53682/auth/callback`
-4. **Allow public client flows:** Yes.
-5. **OAuth scopes requested by the launcher:** `XboxLive.signin offline_access`.
+## Was Counter kann
 
-`XboxLive.signin` is not a normal Microsoft Graph permission and is not added
-through the Graph permissions picker. The client ID must be approved for
-Minecraft Services through [Minecraft's app review](https://aka.ms/mce-reviewappid);
-otherwise the service can return HTTP 403.
+| | |
+|---|---|
+| **Instanzen** | Beliebig viele Minecraft-Installationen mit eigenem Loader (Fabric, Quilt, NeoForge, Forge), RAM, Java und Icon. Dieselbe Instanz lässt sich mehrfach starten. |
+| **Mods & Co.** | Mods, Ressourcenpakete und Shader direkt von Modrinth (und CurseForge) installieren, Abhängigkeiten kommen automatisch dazu. Updates mit Fortschrittsbalken und Backup davor. |
+| **Import** | Profile aus NoRiskClient, Modrinth App, CurseForge, Prism/MultiMC, Lunar, Feather und dem offiziellen Launcher übernehmen – samt Einstellungen, Serverliste, Ressourcenpaketen und Shadern. |
+| **Counti, der KI-Assistent** | Beantwortet Fragen, sucht Mods, baut Modpacks, liest Logs und hilft bei Abstürzen. Änderungen schlägt er vor, du bestätigst. |
+| **Counter-Mod** | Der Fabric-Client-Mod mit HUD-Modulen und Menü – per Knopfdruck in jede Instanz. |
+| **Laufende Spiele** | Eigenes Fenster mit allen laufenden Spielen, Live-Log und Beenden-Knopf. |
+| **Microsoft-Login** | Anmeldung im normalen Browser, Tokens werden mit dem Windows-Schutz (DPAPI) gespeichert. |
+| **Design** | Viele Hintergründe, Akzentfarben und Layouts. |
 
-The client ID is configuration, not a secret. Access and refresh tokens are
-protected with Electron's OS-backed `safeStorage` (Windows DPAPI).
+## Installation
 
-The callback uses local port `53682`; if another application occupies it,
-close that application before signing in. The official Minecraft Launcher
-option remains available when an Azure registration has not yet been approved.
+1. Auf der [Release-Seite](https://github.com/HckrJT/counter-launcher/releases/latest) die Datei **`Counter-Launcher-Setup-<Version>.exe`** laden.
+2. Ausführen. Windows zeigt eventuell eine SmartScreen-Warnung, weil der Installer noch nicht signiert ist („Weitere Informationen“ → „Trotzdem ausführen“).
+3. Unter **Konten** auf **Mit Microsoft anmelden** klicken.
+
+Updates kommen danach von selbst über den Launcher („Nach Updates suchen“).
+
+**Prüfsumme:** Zu jedem Release gehört eine `latest.yml` mit dem SHA-512-Wert (Base64) des Installers. Zum Vergleichen:
+
+```powershell
+$h = (Get-FileHash .\Counter-Launcher-Setup-<Version>.exe -Algorithm SHA512).Hash
+[Convert]::ToBase64String([byte[]]($h -split '(..)' -ne '' | ForEach-Object { [Convert]::ToByte($_, 16) }))
+```
+
+## Datenschutz
+
+- Deine Microsoft-Tokens bleiben **lokal** auf deinem PC, verschlüsselt mit dem Windows-Schutz.
+- Fragen an Counti (samt angehängten Dateien und Infos zur gewählten Instanz) gehen an den Counter-Server und von dort an einen KI-Anbieter (Groq oder OpenRouter), dazu ein anonymer Hash als Nutzerkennung für das Limit. Dein Microsoft-Konto und deine Tokens werden dabei nie mitgeschickt.
+
+## Sicherheit
+
+Schwachstellen bitte **nicht** öffentlich melden, sondern wie in [SECURITY.md](SECURITY.md) beschrieben.
+
+## Entwicklung
+
+```powershell
+npm ci
+npm start      # Launcher im Entwicklungsmodus
+npm test       # Tests
+```
+
+Releases entstehen automatisch, wenn ein Tag `v*` gepusht wird (GitHub Actions baut den Installer).
+
+---
+
+<sub>Counter ist kein offizielles Minecraft-Produkt und nicht mit Mojang oder Microsoft verbunden. © Counter</sub>

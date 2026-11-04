@@ -254,7 +254,17 @@ function extractNatives(natives, dir) {
     for (const e of zip.getEntries()) {
       if (e.isDirectory || n.exclude.some((x) => e.entryName.startsWith(x))) continue;
       if (!/\.(dll|so|dylib)$/i.test(e.entryName)) continue;
-      fs.writeFileSync(path.join(dir, path.basename(e.entryName)), e.getData());
+      const dest = path.join(dir, path.basename(e.entryName));
+      const data = e.getData();
+      // a second game of the same version may already have these DLLs loaded (Windows locks them): same size = same file
+      try {
+        if (fs.statSync(dest).size === data.length) continue;
+      } catch {}
+      try {
+        fs.writeFileSync(dest, data);
+      } catch (err) {
+        if (err.code !== 'EBUSY' && err.code !== 'EPERM') throw err;
+      }
     }
   }
 }

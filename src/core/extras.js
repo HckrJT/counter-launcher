@@ -138,11 +138,14 @@ async function checkUpdates(inst) {
   return updates;
 }
 
-async function applyUpdates(inst, updates) {
+async function applyUpdates(inst, updates, onProgress) {
   const dir = dirOf(inst, 'mods');
+  let done = 0;
   for (const u of updates) {
+    onProgress?.(done, updates.length, u.name);
     await download(u.url, path.join(dir, u.newFile), u.sha1);
     if (u.oldFile !== u.newFile) fs.rmSync(path.join(dir, u.oldFile), { force: true });
+    onProgress?.(++done, updates.length, u.name);
   }
   return updates.length;
 }

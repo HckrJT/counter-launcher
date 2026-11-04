@@ -69,7 +69,6 @@ contextBridge.exposeInMainWorld('counter', {
   aiApply: call('ai:apply'),
   aiModels: call('ai:models'),
   aiProviders: call('ai:providers'),
-  aiSetKey: call('ai:setKey'),
   customModules: call('mods:list'),
   customModuleDelete: call('mods:delete'),
   customModuleCode: call('mods:code'),
@@ -131,8 +130,16 @@ contextBridge.exposeInMainWorld('counter', {
   installUpdate: call('update:install'),
   appVersion: call('app:version'),
   backgroundImage: call('theme:image'),
+  updateCounter: call('counter:update'),
+  gamesList: call('games:list'),
+  gamesLog: call('games:log'),
+  gamesStop: call('games:stop'),
+  gamesOpen: call('games:open'),
   on: (channel, fn) => {
-    const allowed = ['status', 'log', 'running', 'login:browser', 'update', 'crash', 'theme:changed', 'ai:status'];
-    if (allowed.includes(channel)) ipcRenderer.on(channel, (_e, data) => fn(data));
+    const allowed = ['status', 'log', 'running', 'login:browser', 'update', 'crash', 'theme:changed', 'ai:status', 'updates:progress', 'games', 'game:log'];
+    if (!allowed.includes(channel)) return () => {};
+    const listener = (_e, data) => fn(data);
+    ipcRenderer.on(channel, listener);
+    return () => ipcRenderer.removeListener(channel, listener);
   },
 });

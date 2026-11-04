@@ -1,4 +1,4 @@
-// The Counter AI worker (Cloudflare) that forwards to Groq with the shared key kept as a Cloudflare secret.
+// The Counter AI worker (Cloudflare) that forwards to shared Groq/OpenRouter keys kept as Cloudflare secrets.
 // Empty url = no shared assistant, users need their own Groq key.
 const os = require('os');
 const crypto = require('crypto');

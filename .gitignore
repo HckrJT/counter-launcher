@@ -1,2 +1,11 @@
 node_modules/
 dist/
+
+# internal (kept locally, not published)
+release.ps1
+attach-counter.ps1
+ROADMAP.md
+RELEASE.md
+.env
+*.pem
+*.key

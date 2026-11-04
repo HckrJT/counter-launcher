@@ -23,20 +23,12 @@ einem echten Hosting.
 In `website/app.js` können die Community-Werte in `COUNTER_CONFIG` ergänzt
 oder angepasst werden:
 
-- `download`: echte GitHub-Release- oder Installer-URL (aktuell auf Release 1.20.8 gesetzt)
+- `download`: echte GitHub-Release- oder Installer-URL (aktuell auf Release 1.20.7 gesetzt)
 - `repo`: echtes öffentliches Counter-Repository (aktuell gesetzt)
 - `discord`: echte Discord-Community-URL
 - `server`: echte Minecraft-Serveradresse
 
 Keine Tokens, Client-Secrets oder privaten Zugangsdaten in diese Datei eintragen.
-Die sichtbare Launch-Checkliste auf der Website hält zusätzlich fest:
-
-- Azure/Minecraft-App-ID und Minecraft-Services-Freigabe prüfen
-- Launcher-Login-Commit im gemeinsamen Stand behalten
-- Windows-Release bauen, signieren und auf GitHub veröffentlichen
-- Hosting, Domain und DNS verbinden
-- verfügbare GitHub Student Benefits für Hosting, Domain und CI/CD nutzen
-
 Die komplette Release- und GitHub-Pages-Anleitung steht in
 [`RELEASE.md`](../RELEASE.md). Der Launcher-Update-Knopf bezieht seine
 Metadaten nicht von dieser Website, sondern aus GitHub Releases:
