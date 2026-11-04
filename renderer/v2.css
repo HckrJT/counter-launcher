@@ -95,7 +95,9 @@ body.no-motion.v2 .v2-reveal { opacity: 1; transform: none; }
 @media (prefers-reduced-motion: reduce) { body.v2::before { animation: none; } }
 
 /* ---- long lists: skip layout / paint of rows that are off screen, no blur per row, quicker reveal */
-.lrow, .result { content-visibility: auto; contain-intrinsic-size: auto 64px; backdrop-filter: none !important; }
+.lrow { content-visibility: auto; contain-intrinsic-size: auto 54px; }
+.result { content-visibility: auto; contain-intrinsic-size: auto 118px; }
+.lrow, .result { backdrop-filter: none !important; }
 .list .btn, .list .seg, .list input, .list select { backdrop-filter: none !important; }
 body.v2 .v2-reveal.v2-in { transition-duration: 0.35s, 0.4s; }
 

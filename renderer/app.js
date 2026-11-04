@@ -80,13 +80,20 @@ document.addEventListener('pointerdown', (e) => {
 // light behind the glass follows the mouse (smoothed)
 let lx = innerWidth / 2, ly = innerHeight / 2, tx = lx, ty = ly;
 document.addEventListener('mousemove', (e) => { tx = e.clientX; ty = e.clientY; });
-(function followLight() {
+// the loop only runs while the light is still moving: setting a CSS variable on the root every frame makes the browser
+// recalculate the style of the whole page (the more rows on the page, the slower)
+let lightRaf = 0;
+function followLight() {
   lx += (tx - lx) * 0.12;
   ly += (ty - ly) * 0.12;
+  const settled = Math.abs(tx - lx) < 0.4 && Math.abs(ty - ly) < 0.4;
+  if (settled) { lx = tx; ly = ty; }
   document.documentElement.style.setProperty('--mx', lx + 'px');
   document.documentElement.style.setProperty('--my', ly + 'px');
-  requestAnimationFrame(followLight);
-})();
+  lightRaf = settled ? 0 : requestAnimationFrame(followLight);
+}
+document.addEventListener('mousemove', () => { if (!lightRaf) lightRaf = requestAnimationFrame(followLight); });
+followLight();
 // pixel night sky behind everything: twinkling stars, a few shooting stars, slow drift with the mouse
 (function sky() {
   const c = document.getElementById('sky');
@@ -138,7 +145,7 @@ function hash(str) {
   };
 }
 function accentRgb() {
-  const v = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#9d5cff';
+  const v = window.cssAccent();
   const n = parseInt(v.slice(1), 16);
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 }

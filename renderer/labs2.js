@@ -71,7 +71,7 @@ async function settingsLabs(view) {
     h('h2', {}, 'Design-Extras'),
     h('div', { class: 'form panel' },
       h('label', {}, 'Animierte Akzentfarbe'), seg('accentAnim', [['off', 'Aus'], ['pulse', 'Pulsieren'], ['rainbow', 'Regenbogen']], 'off'),
-      h('label', {}, 'Nachtmodus automatisch'), h('button', { class: 'switch' + (t.dayNight ? ' on' : ''), title: 'Zwischen 21 und 6 Uhr etwas dunkler', onclick: async (e) => { const v = !theme().dayNight; await saveTheme({ dayNight: v }); e.currentTarget.classList.toggle('on', v); } }),
+      h('label', {}, 'Nachtmodus automatisch'), h('button', { class: 'switch' + (t.dayNight ? ' on' : ''), title: 'Zwischen 21 und 6 Uhr etwas dunkler', onclick: async (e) => { const b = e.currentTarget; const v = !theme().dayNight; b.classList.toggle('on', v); await saveTheme({ dayNight: v }); } }),
       h('label', {}, 'Akzentfarbe aus Skin'), h('div', { class: 'row' }, h('button', { class: 'btn sm', onclick: async () => { try { const c = await accentFromSkin(); toast(`Akzentfarbe ${c} übernommen`); } catch (e) { toast(e.message, true); } } }, 'Aus meinem Skin berechnen')),
       h('label', {}, 'Design teilen'), h('div', { class: 'row' }, code,
         h('button', { class: 'btn sm', onclick: async () => { navigator.clipboard.writeText(await call(api.labsThemeCode)); toast('Design-Code kopiert'); } }, 'Meinen Code kopieren'),
@@ -85,13 +85,13 @@ async function settingsLabs(view) {
       st.enabled && h('div', { class: 'row' }, h('button', { class: 'btn sm', onclick: async () => { try { await call(api.labsParentExtend, pin.value, 30); toast('30 Minuten mehr'); } catch (e) { toast(e.message, true); } } }, '+30 Min. (PIN oben eingeben)'))));
 
   // ---- more settings: accessibility, sounds, update channel, privacy, error log
-  const sw = (key, label, tip, after) => [h('label', {}, label), h('button', { class: 'switch' + (theme()[key] ? ' on' : ''), title: tip || '', onclick: async (e) => { const v = !theme()[key]; await saveTheme({ [key]: v }); e.currentTarget.classList.toggle('on', v); after && after(v); } })];
+  const sw = (key, label, tip, after) => [h('label', {}, label), h('button', { class: 'switch' + (theme()[key] ? ' on' : ''), title: tip || '', onclick: async (e) => { const b = e.currentTarget; const v = !theme()[key]; b.classList.toggle('on', v); await saveTheme({ [key]: v }); after && after(v); } })];
   view.append(
     h('h2', {}, 'Komfort & Datenschutz'),
     h('div', { class: 'form panel' },
       ...sw('highContrast', 'Hoher Kontrast', 'Kräftigere Schrift und Ränder, besser lesbar'),
       ...sw('uiSounds', 'Klick-Töne', 'Kleine Töne bei Klicks'),
-      h('label', {}, 'Beta-Updates'), h('button', { class: 'switch' + (state.settings.beta ? ' on' : ''), title: 'Auch Vorab-Versionen laden (wirkt nach dem nächsten Start)', onclick: async (e) => { const v = !state.settings.beta; await call(api.setSettings, { beta: v }); state.settings.beta = v; e.currentTarget.classList.toggle('on', v); toast(v ? 'Beta-Updates an (nach Neustart)' : 'Beta-Updates aus (nach Neustart)'); } }),
+      h('label', {}, 'Beta-Updates'), h('button', { class: 'switch' + (state.settings.beta ? ' on' : ''), title: 'Auch Vorab-Versionen laden (wirkt nach dem nächsten Start)', onclick: async (e) => { const btn = e.currentTarget; const v = !state.settings.beta; btn.classList.toggle('on', v); await call(api.setSettings, { beta: v }); state.settings.beta = v; toast(v ? 'Beta-Updates an (nach Neustart)' : 'Beta-Updates aus (nach Neustart)'); } }),
       h('label', {}, 'Datenschutz'), h('button', { class: 'btn sm', onclick: privacyModal }, 'Was verlässt meinen PC?'),
       h('label', {}, 'Fehlerprotokoll'), h('button', { class: 'btn sm', onclick: async () => { const t = await call(api.labs2Errors); modal(h('div', {}, h('h2', {}, 'Fehlerprotokoll des Launchers'), h('pre', { class: 'logview', style: 'height:260px' }, t || 'Keine Fehler aufgezeichnet.'), h('div', { class: 'row', style: 'justify-content:flex-end;margin-top:12px' }, h('button', { class: 'btn', onclick: () => { navigator.clipboard.writeText(t || ''); toast('Kopiert'); } }, 'Kopieren'), h('button', { class: 'btn primary', onclick: closeModal }, 'Schließen'))), true); } }, 'Anzeigen')));
 }

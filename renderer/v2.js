@@ -79,7 +79,7 @@
       if (!dust) return;
       if (!motion()) { g.clearRect(0, 0, dust.width, dust.height); raf = requestAnimationFrame(frame); return; }
       g.clearRect(0, 0, dust.width, dust.height);
-      g.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#9d5cff';
+      g.fillStyle = window.cssAccent();
       for (const p of parts) {
         p.y -= p.v;
         if (p.y < -4) { p.y = dust.height + 4; p.x = Math.random() * dust.width; }
