@@ -60,4 +60,10 @@ Releases entstehen automatisch, wenn ein Tag `v*` gepusht wird (GitHub Actions b
 
 ---
 
+## Lizenz
+
+Der Quellcode ist **einsehbar, aber nicht frei nutzbar** (alle Rechte vorbehalten): Du darfst den Launcher benutzen und den Code lesen, aber nicht kopieren, verändern oder weiterverbreiten. Details in [LICENSE](LICENSE).
+
+---
+
 <sub>Counter ist kein offizielles Minecraft-Produkt und nicht mit Mojang oder Microsoft verbunden. © Counter</sub>
