@@ -86,26 +86,33 @@ function accountMenu(anchor) {
 const extraPages = {};
 const extraNames = {};
 let lastRoute = '';
+let renderSeq = 0;
+/**
+ * The old page stays on screen until the new one is complete, then the two are swapped in one go (nothing goes blank
+ * while data loads). The new page is built hidden on top of the old one in the same grid cell, so it is already part of
+ * the document (sizes, isConnected, timers all work). Redrawing the same page (a setting changed) and switching between
+ * the tabs of one instance swap without a fade and keep the scroll position; a real page change fades and starts at the top.
+ */
 render = async function () {
+  const content = $('#content');
   const view = h('div', { class: 'page' });
   const key = JSON.stringify(route);
-  // same page again (a setting was changed, a game started ...): swap without transition and keep the scroll position;
-  // only a real page change fades and starts at the top
-  const soft = key === lastRoute && $('#content').firstElementChild;
+  const base = JSON.stringify({ p: route.page, id: route.id });
+  const same = key === lastRoute;
+  const sameBase = base === lastBase && !!content.firstElementChild;
   lastRoute = key;
-  if (soft) {
-    const top = $('#content').scrollTop;
-    view.style.minHeight = $('#content').scrollHeight + 'px';
-    view.classList.add('soft');
-    $('#content').replaceChildren(view);
-    $('#content').scrollTop = top;
-    view.dataset.soft = top;
-  } else {
-    await window.transition(() => {
-      $('#content').replaceChildren(view);
-      $('#content').scrollTop = 0;
-    });
-  }
+  lastBase = base;
+  const my = ++renderSeq;
+  const old = content.firstElementChild;
+  const keepScroll = (same || sameBase) && !!old;
+  if (same && old) view.classList.add('soft');
+  const top = content.scrollTop;
+  if (old) {
+    content.style.display = 'grid';
+    old.style.gridArea = '1 / 1';
+    view.style.cssText = 'grid-area:1/1;visibility:hidden;pointer-events:none';
+    content.append(view);
+  } else content.replaceChildren(view);
   const pages = { ...extraPages, home, instances: instancesPage, instance, browse, project, import: importPage, accounts, settings, news: (v) => newsPage(v) };
   const names = { ...extraNames, news: 'Neuigkeiten', home: 'Spielen', instances: 'Instanzen', instance: 'Instanz', browse: 'Entdecken', project: 'Projekt', import: 'Importieren', accounts: 'Konten', settings: 'Einstellungen' };
   $('#crumbs').replaceChildren(h('span', {}, 'Counter'), '/', h('b', {}, route.page === 'instance' ? (instById(route.id) || selected())?.name || '' : names[route.page] || ''));
@@ -115,13 +122,22 @@ render = async function () {
   } catch (e) {
     view.append(h('div', { class: 'empty' }, h('b', {}, 'Fehler'), e.message));
   }
-  if (soft) {
-    view.style.minHeight = '';
-    $('#content').scrollTop = Number(view.dataset.soft) || 0;
-    delete view.dataset.soft;
+  // a newer render started meanwhile (fast clicks): this one is out of date
+  if (my !== renderSeq) {
+    view.remove();
+    return;
   }
+  const swap = () => {
+    if (old) old.remove();
+    view.style.cssText = '';
+    content.style.display = '';
+    content.scrollTop = keepScroll ? top : 0;
+  };
+  if (keepScroll || !old) swap();
+  else await window.transition(swap);
   if (viewer) viewer.renderPaused = !viewer.canvas.isConnected;
 };
+let lastBase = '';
 
 // ================================================================= 3D skin (skinview3d, one viewer reused)
 let viewer = null;
@@ -174,17 +190,48 @@ function applySkinPrefs() {
   if (!waveTimer) viewer.animation = animation(opt('skinAnim', 'idle'));
   if (skinData) viewer.loadCape(opt('skinCape', true) ? skinData.cape : null);
 }
+/**
+ * The own skin appears at once from the last session (cached per account); without a cache the figure stays invisible
+ * and fades in as soon as the real skin is there. The hand-drawn placeholder is only a last resort (offline, no skin).
+ */
 async function loadSkin() {
   const key = state.activeAccount || '-';
   if (skinFor === key) return;
   skinFor = key;
-  viewer.loadSkin(defaultSkin());
+  const canvas = viewer.canvas;
+  const show = () => { canvas.style.transition = 'opacity 0.4s'; canvas.style.opacity = '1'; };
+  let cached = null;
+  try { cached = JSON.parse(localStorage.getItem('cl.skin.' + key) || 'null'); } catch {}
+  let done = false;
+  if (cached && cached.url) {
+    show();
+    Promise.resolve(viewer.loadSkin(cached.url, { model: cached.slim ? 'slim' : 'default' })).catch(() => {});
+  } else {
+    canvas.style.transition = 'none';
+    canvas.style.opacity = '0';
+  }
+  const late = setTimeout(() => {
+    if (done || skinFor !== key || (cached && cached.url)) return;
+    viewer.loadSkin(defaultSkin());
+    show();
+  }, 6000);
   try {
     skinData = await call(api.skin);
     if (skinFor !== key) return;
-    if (skinData.url) viewer.loadSkin(skinData.url, { model: skinData.slim ? 'slim' : 'default' });
+    done = true;
+    clearTimeout(late);
+    if (skinData.url) {
+      await Promise.resolve(viewer.loadSkin(skinData.url, { model: skinData.slim ? 'slim' : 'default' })).catch(() => viewer.loadSkin(defaultSkin()));
+      try { if (skinData.url.length < 300000) localStorage.setItem('cl.skin.' + key, JSON.stringify({ url: skinData.url, slim: !!skinData.slim })); } catch {}
+    } else if (!cached) viewer.loadSkin(defaultSkin());
+    show();
     applySkinPrefs();
-  } catch {}
+  } catch {
+    done = true;
+    clearTimeout(late);
+    if (!cached) viewer.loadSkin(defaultSkin());
+    show();
+  }
 }
 function skinCanvas() {
   if (!window.skinview3d) return null;

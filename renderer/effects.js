@@ -2,7 +2,14 @@
 // pixel bursts, count-up numbers and the layered pixel sky (moon, clouds, stars). Everything respects "no-motion".
 (() => {
   const motion = () => !document.body.classList.contains('no-motion');
-  const accent = () => getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#9d5cff';
+  // getComputedStyle(...).getPropertyValue forces a full style recalculation; read once in a while, not in every animation frame
+  let accCache = { t: -1e9, v: '#9d5cff' };
+  window.cssAccent = () => {
+    const n = performance.now();
+    if (n - accCache.t > 400) accCache = { t: n, v: getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#9d5cff' };
+    return accCache.v;
+  };
+  const accent = () => window.cssAccent();
 
   // ---------------------------------------------------------------- splash: logo built from pixels
   const LOGO = [
