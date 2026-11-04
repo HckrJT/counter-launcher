@@ -1,0 +1,30 @@
+Counter Launcher - Source-Available License (All Rights Reserved)
+
+Copyright (c) 2026 HckrJT. All rights reserved.
+
+The source code in this repository is published so that anyone can read it and
+check what the launcher does. It is NOT open source.
+
+You MAY:
+- download and use the official Counter Launcher installer for your own,
+  non-commercial use;
+- read the source code, and report bugs or security problems (see SECURITY.md).
+
+You MAY NOT, without written permission from the copyright holder:
+- copy, modify, merge, publish, distribute, sublicense or sell the source code
+  or any part of it, or a modified or rebuilt version of the launcher;
+- publish your own builds of the launcher or use the name "Counter" or its
+  logo for another product;
+- use the code or the shared Counter servers (such as the Counter AI worker)
+  for any other application.
+
+"Minecraft" is a trademark of Mojang AB / Microsoft. Counter is not an official
+Minecraft product and is not affiliated with Mojang or Microsoft. Third-party
+components (for example Electron and the npm packages listed in package.json)
+stay under their own licenses.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY ARISING FROM THE USE
+OF THE SOFTWARE.
