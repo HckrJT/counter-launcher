@@ -9,6 +9,31 @@ const MAX_BODY = 250_000;
 const RESERVE_MODEL = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
 const hits = new Map();
 
+// The client header is public, so it only keeps random bots away. Real protection: limits per IP (a changed
+// X-Counter-User does not help), only free / known models, and only the fields Counter itself sends.
+const IP_PER_MINUTE = 20;
+const IP_PER_DAY = 2500;
+const ipHits = new Map();
+function ipLimited(ip) {
+  const now = Date.now();
+  const h = ipHits.get(ip) || { min: [], day: 0, dayStart: now };
+  h.min = h.min.filter((t) => now - t < 60_000);
+  if (now - h.dayStart > 86_400_000) { h.day = 0; h.dayStart = now; }
+  if (h.day >= IP_PER_DAY) return 3600;
+  if (h.min.length >= IP_PER_MINUTE) return Math.ceil((60_000 - (now - h.min[0])) / 1000) + 1;
+  h.min.push(now);
+  h.day++;
+  ipHits.set(ip, h);
+  if (ipHits.size > 50_000) ipHits.clear();
+  return 0;
+}
+// OpenRouter: only free models (the shared key must never pay); Groq: the model families Counter uses
+const ALLOWED_MODEL = {
+  openrouter: (m) => m === 'openrouter/free' || /^[\w.\-/]+:free$/.test(m),
+  groq: (m) => /^(qwen\/|moonshotai\/|openai\/gpt-oss|meta-llama\/|llama-|groq\/compound|compound)[\w.\-/]*$/.test(m),
+};
+const BODY_FIELDS = ["model", "messages", "tools", "tool_choice", "temperature", "max_tokens", "reasoning_effort", "include_reasoning", "reasoning_format"];
+
 function limited(id, turn) {
   const now = Date.now();
   const h = hits.get(id) || { min: [], turns: new Map(), day: 0, dayStart: now };
@@ -70,7 +95,11 @@ export default {
       return new Response(r.body, { status: r.status, headers: { 'Content-Type': 'application/json' } });
     }
     if (request.method === 'POST' && url.pathname === '/v1/chat/completions') {
-      const user = (request.headers.get('X-Counter-User') || '').slice(0, 64) + '|' + (request.headers.get('CF-Connecting-IP') || '');
+      const ip = request.headers.get('CF-Connecting-IP') || '';
+      // optional Cloudflare rate limit binding (wrangler: [[unsafe.bindings]] type = "ratelimit", name = "RATE_LIMITER")
+      const ipWait = env.RATE_LIMITER ? ((await env.RATE_LIMITER.limit({ key: ip })).success ? 0 : 30) : ipLimited(ip);
+      if (ipWait) return new Response(JSON.stringify({ error: { message: 'Zu viele Anfragen – kurz warten' } }), { status: 429, headers: { 'Content-Type': 'application/json', 'retry-after': String(ipWait) } });
+      const user = (request.headers.get('X-Counter-User') || '').slice(0, 64) + '|' + ip;
       const turn = (request.headers.get('X-Counter-Turn') || '').slice(0, 40);
       const wait = limited(user, turn);
       if (wait) return new Response(JSON.stringify({ error: { message: 'Zu viele Anfragen – kurz warten' } }), { status: 429, headers: { 'Content-Type': 'application/json', 'retry-after': String(wait) } });
@@ -78,6 +107,9 @@ export default {
       if (text.length > MAX_BODY) return json(413, { error: { message: 'Anfrage zu groß' } });
       let body;
       try { body = JSON.parse(text); } catch { return json(400, { error: { message: 'Ungültige Anfrage' } }); }
+      if (!body || typeof body !== 'object' || !Array.isArray(body.messages) || !ALLOWED_MODEL[requested](String(body.model || ''))) return json(400, { error: { message: 'Modell nicht erlaubt' } });
+      // forward only what Counter sends: no plugins, provider routing or other options that could change costs
+      body = Object.fromEntries(BODY_FIELDS.filter((k) => body[k] !== undefined).map((k) => [k, body[k]]));
       body.max_tokens = Math.min(Number(body.max_tokens) || 1500, 4096);
       body.stream = false;
       const r = await fetch(base + apiPath('/chat/completions'), { method: 'POST', headers: { ...auth, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
