@@ -3,150 +3,213 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#090a12">
-  <meta name="description" content="Counter ist dein Minecraft-Launcher für saubere Instanzen, Mods und den Counter-Look.">
-  <title>Counter — Minecraft, aber auf deine Art.</title>
+  <meta name="theme-color" content="#0a0912">
+  <meta name="description" content="Counter ist der Minecraft-Launcher für Windows: Instanzen, Mods, Import aus anderen Launchern, Microsoft-Login und der KI-Assistent Counti.">
+  <meta property="og:title" content="Counter Launcher – Minecraft, gemacht für dich">
+  <meta property="og:description" content="Instanzen, Mods, Import aus anderen Launchern, Microsoft-Login und ein KI-Assistent. Für Windows.">
+  <meta property="og:image" content="assets/shots/home.webp">
+  <title>Counter Launcher – Minecraft, gemacht für dich</title>
   <link rel="icon" href="assets/counter-icon.png">
-  <link rel="stylesheet" href="styles.css?v=3">
+  <link rel="preload" href="assets/fonts/Silkscreen-Bold.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="stylesheet" href="styles.css?v=4">
 </head>
 <body>
-  <div class="cursor-glow" aria-hidden="true"></div>
-  <div class="cursor-ring" aria-hidden="true"></div>
-  <canvas id="particle-field" aria-hidden="true"></canvas>
-  <div class="page-glow page-glow-one" aria-hidden="true"></div>
-  <div class="page-glow page-glow-two" aria-hidden="true"></div>
+  <canvas id="sky" aria-hidden="true"></canvas>
+  <div class="aurora" aria-hidden="true"></div>
 
-  <header class="site-header">
-    <a class="brand" href="#top" aria-label="Counter Startseite">
-      <img src="assets/counter-icon.png" alt="" width="42" height="42">
-      <span>COUNTER</span>
-    </a>
-    <nav class="main-nav" aria-label="Hauptnavigation">
-      <a href="#features">Features</a>
-      <a href="#account">Login</a>
-      <a href="#community">Community</a>
+  <header class="nav" id="nav">
+    <a class="brand" href="#top" aria-label="Counter Startseite"><img src="assets/counter-icon.png" alt="" width="34" height="34"><span>COUNTER</span></a>
+    <nav aria-label="Hauptnavigation">
+      <a href="#funktionen">Funktionen</a>
+      <a href="#counti">Counti</a>
+      <a href="#farben">Design</a>
+      <a href="#sicherheit">Sicherheit</a>
       <a href="#faq">FAQ</a>
     </nav>
-    <a class="button button-small button-ghost config-link" data-config-link="download" href="#downloads">Download <span aria-hidden="true">↗</span></a>
+    <div class="nav-right">
+      <a class="pill" href="https://github.com/HckrJT/counter-launcher" rel="noopener">GitHub</a>
+      <a class="btn btn-primary btn-sm" href="#download">Download</a>
+    </div>
   </header>
 
   <main id="top">
-    <section class="hero section-shell">
-      <div class="hero-atmosphere" aria-hidden="true"><div class="hero-moon"></div><div class="hero-grid"></div><i></i><i></i><i></i><i></i><i></i><i></i></div>
-      <div class="hero-copy reveal">
-        <p class="eyebrow"><span class="eyebrow-dot"></span> Counter Launcher · aktuell für Windows</p>
-        <h1>Minecraft,<br><em>sauber gestartet.</em></h1>
-        <p class="hero-lede">Counter hält Instanzen, Mods und dein Microsoft-Konto an einem Ort. Weniger Ordner suchen. Mehr spielen.</p>
-        <div class="hero-actions">
-          <a class="button button-primary config-link" data-config-link="download" href="#downloads">
-            <span>Launcher herunterladen</span>
-            <span class="button-arrow" aria-hidden="true">↗</span>
-          </a>
-          <a class="button button-ghost" href="#features">Features ansehen <span aria-hidden="true">↓</span></a>
+    <!-- HERO -->
+    <section class="hero wrap">
+      <div class="hero-copy rv">
+        <p class="eyebrow"><i class="dot"></i> Counter Launcher · für Windows · kostenlos</p>
+        <h1>Der Minecraft-Launcher<br><span class="grad">gemacht für dich.</span></h1>
+        <p class="lede">Instanzen, Mods, Microsoft-Login und ein KI-Assistent an einem Ort. Wechsle von deinem alten Launcher mit allen Einstellungen, Servern und Packs – in ein paar Klicks.</p>
+        <div class="cta">
+          <a class="btn btn-primary btn-lg" href="#download" data-dl><span data-dl-label>Für Windows herunterladen</span><span class="arr">↓</span></a>
+          <a class="btn btn-ghost btn-lg" href="#funktionen">Funktionen ansehen</a>
         </div>
-        <p class="microcopy"><span class="status-dot"></span> Windows · Microsoft Login · Modrinth</p>
+        <p class="micro"><i class="dot ok"></i> <span data-version>Neueste Version</span> · <span data-size>Windows 10/11</span> · Quellcode einsehbar</p>
       </div>
-      <div class="hero-art reveal reveal-delay" aria-label="Vorschau der Counter Launcher Oberfläche">
-        <div class="window-chrome">
-          <div class="window-top">
-            <div class="window-brand"><span class="mini-mark">C</span><strong>Counter Launcher</strong></div>
-            <div class="window-controls"><i></i><i></i><i></i></div>
-          </div>
-          <div class="window-body">
-            <aside class="window-rail">
-              <span class="rail-active">⌂</span><span>⌕</span><span>↥</span><span class="rail-spacer"></span><span>◎</span><span>⚙</span>
-            </aside>
-            <div class="window-content">
-              <div class="window-heading"><div><span class="tiny-label">DEINE BIBLIOTHEK</span><h2>Willkommen zurück.</h2></div><span class="status-pill">● ONLINE</span></div>
-              <div class="instance-card instance-main"><div class="pixel-orb">C</div><div><span class="tiny-label">COUNTER 1.15.0</span><h3>Counter Survival</h3><p>Fabric · 26.1.2 · zuletzt gespielt heute</p></div><button aria-label="Instanz starten">▶</button></div>
-              <div class="window-grid"><div class="mini-card"><span>MODS</span><strong>24</strong><small>installiert</small></div><div class="mini-card"><span>STABILITÄT</span><strong>98%</strong><small>letzte 30 Starts</small></div><div class="mini-card"><span>COUNTER AI</span><strong>Bereit</strong><small>Module & Hilfe</small></div></div>
-              <div class="window-footer"><span>✦ Counter 2.0 Design</span><span>Microsoft-Konto verbunden</span></div>
+      <div class="hero-shot rv d2">
+        <div class="tilt" data-tilt>
+          <div class="glow"></div>
+          <img class="shot" src="assets/shots/home.webp" width="1800" height="1125" alt="Startseite des Counter Launchers mit Skin, Spielen-Knopf und deinen Instanzen" fetchpriority="high">
+          <span class="float f1">Mods mit einem Klick</span>
+          <span class="float f2">Mehrfachstart</span>
+          <span class="float f3">KI-Assistent Counti</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- STATS -->
+    <section class="wrap stats rv" aria-label="Auf einen Blick">
+      <div class="stat"><b data-count="155">155</b><span>Module im Counter-Mod</span></div>
+      <div class="stat"><b data-count="7">7</b><span>Launcher zum Importieren</span></div>
+      <div class="stat"><b data-count="4">4</b><span>Loader: Fabric, Quilt, NeoForge, Forge</span></div>
+      <div class="stat"><b>0 €</b><span>Launcher und Counti</span></div>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="wrap section" id="funktionen">
+      <div class="head rv">
+        <p class="eyebrow">Das alles steckt drin</p>
+        <h2>Ein Launcher.<br><span class="grad">Alles, was du brauchst.</span></h2>
+      </div>
+      <div class="tabs rv" id="tabs">
+        <div class="tab-list" role="tablist" aria-label="Funktionen">
+          <button role="tab" class="tab on" data-i="0"><b>Instanzen & Mods</b><span>Jede Version mit eigenen Mods, Welten und Einstellungen.</span><i class="bar"></i></button>
+          <button role="tab" class="tab" data-i="1"><b>Import</b><span>Wechsel von NoRiskClient, Modrinth, CurseForge, Prism & Co.</span><i class="bar"></i></button>
+          <button role="tab" class="tab" data-i="2"><b>Counti, die KI</b><span>Fragen stellen, Mods finden, Abstürze verstehen.</span><i class="bar"></i></button>
+          <button role="tab" class="tab" data-i="3"><b>Laufende Spiele</b><span>Mehrere Fenster, Live-Logs und Beenden-Knopf.</span><i class="bar"></i></button>
+          <button role="tab" class="tab" data-i="4"><b>Counter-Mod</b><span>Der Fabric-Client mit HUD-Modulen, per Klick installiert.</span><i class="bar"></i></button>
+        </div>
+        <div class="stage">
+          <figure class="slide on"><img src="assets/shots/inst.webp" width="1800" height="1125" alt="Mods einer Instanz mit Schaltern und Update-Knopf" loading="lazy"></figure>
+          <figure class="slide"><img src="assets/shots/import.webp" width="1800" height="875" alt="Import-Seite mit Anleitung für NoRiskClient" loading="lazy"></figure>
+          <figure class="slide"><img src="assets/shots/chat.webp" width="1800" height="1125" alt="Counti schlägt Änderungen für eine Instanz vor" loading="lazy"></figure>
+          <figure class="slide"><img src="assets/shots/games.webp" width="1800" height="1096" alt="Fenster Laufende Spiele mit Live-Log" loading="lazy"></figure>
+          <figure class="slide mods">
+            <div class="modbox">
+              <p class="eyebrow">Counter-Mod · Fabric</p>
+              <h3>Module, die du wirklich nutzt.</h3>
+              <div class="chips" id="modchips"></div>
+              <p class="muted">Einzeln ein- und ausschaltbar. Im Launcher reicht ein Klick auf <b>Counter aktualisieren</b>, dann steckt die neueste Version in deiner Instanz.</p>
             </div>
-          </div>
+          </figure>
         </div>
-        <div class="floating-note note-top"><span>✦</span> Modpack importieren</div>
-        <div class="floating-note note-bottom"><span>◈</span> Deine Instanzen. Dein Setup.</div>
       </div>
     </section>
 
-    <section class="trust-strip section-shell reveal">
-      <span>FÜR DEIN MINECRAFT-SETUP</span><i></i><span>MODRINTH-INTEGRATION</span><i></i><span>MICROSOFT LOGIN</span><i></i><span>COUNTER MOD</span>
-    </section>
-
-    <section class="section-shell section-block" id="features">
-      <div class="section-heading reveal">
-        <p class="eyebrow">Was Counter kann</p>
-        <h2>Weniger Suchen.<br><em>Mehr Spielen.</em></h2>
-        <p>Ein Launcher für die Dinge, die du jedes Mal brauchst: Instanzen, Mods, Login und ein bisschen Ordnung.</p>
-      </div>
-      <div class="feature-grid">
-        <article class="feature-card feature-card-wide reveal"><div class="feature-icon purple">◈</div><span class="card-kicker">01 · INSTANZEN</span><h3>Versionen und<br>Profile getrennt.</h3><p>Mehrere Minecraft-Versionen, Loader und Mod-Profile bleiben übersichtlich. Öffnen, kopieren, wechseln.</p><div class="card-visual stack-visual"><span>Counter Survival</span><span>Vanilla Experiments</span><span>Modded Friends</span></div></article>
-        <article class="feature-card reveal"><div class="feature-icon blue">⌕</div><span class="card-kicker">02 · MODS</span><h3>Mods direkt<br>im Launcher.</h3><p>Modrinth durchsuchen, installieren und Updates prüfen, ohne den Launcher zu wechseln.</p><div class="card-visual search-visual"><span>⌕</span><b>Mods und Packs suchen</b><i>↗</i></div></article>
-        <article class="feature-card reveal"><div class="feature-icon green">✦</div><span class="card-kicker">03 · WERKZEUGE</span><h3>Probleme finden,<br>bevor sie nerven.</h3><p>Gesundheitscheck, Backups, Importer und Counter-Werkzeuge sind dort, wo deine Instanz ist.</p><div class="card-visual ai-visual"><span class="ai-avatar">✓</span><span>Instanz geprüft</span><i>bereit</i></div></article>
-        <article class="feature-card feature-card-wide feature-card-accent reveal"><div class="feature-icon orange">◒</div><span class="card-kicker">04 · DESIGN</span><h3>Der Counter-Look<br>bleibt im Spiel.</h3><p>Aurora-Hintergründe, klare Module und ein Interface, das nicht nach Standard-Launcher aussieht.</p><div class="accent-lines" aria-hidden="true"><i></i><i></i><i></i><i></i></div></article>
-      </div>
-    </section>
-
-    <section class="game-section section-shell section-block" id="ingame">
-      <div class="section-heading reveal">
-        <p class="eyebrow">Counter im Spiel</p>
-        <h2>Information,<br><em>wo sie hingehört.</em></h2>
-        <p>Der gleiche Look läuft weiter, wenn Minecraft startet: klare Module, kleine Abstände, keine überladene Oberfläche.</p>
-      </div>
-      <div class="game-preview reveal" data-tilt>
-        <div class="game-sky"><span class="game-cloud cloud-a"></span><span class="game-cloud cloud-b"></span><span class="game-moon"></span><span class="game-star star-a"></span><span class="game-star star-b"></span></div>
-        <div class="game-hud hud-top"><span class="hud-brand">COUNTER <b>1.15.0</b></span><span class="hud-status">● 60 FPS</span></div>
-        <div class="game-hud hud-left"><span><b>POSITION</b> 124 / 72 / -38</span><span><b>BIOME</b> Forest</span><span><b>TIME</b> 14:32</span></div>
-        <div class="game-hud hud-right"><span class="health">♥ ♥ ♥ ♥ ♥ ♥ ♥ ♥ ♥ ♥</span><span class="armor">▰ ▰ ▰ ▰ ▰ ▰ ▰ ▰ ▰ ▰</span><span class="hud-quest">COUNTER MODULES <b>12 / 24</b></span></div>
-        <div class="game-crosshair">+</div>
-        <div class="game-hotbar"><span class="slot selected">◇</span><span class="slot">▧</span><span class="slot">◈</span><span class="slot">▣</span><span class="slot">◌</span><span class="slot">◒</span><span class="slot">▦</span><span class="slot">◉</span><span class="slot">◫</span></div>
-        <div class="game-caption"><span>COUNTER MOD</span><strong>Dein HUD. Deine Regeln.</strong><i>26.1.2 · Fabric</i></div>
+    <!-- COUNTI BAND -->
+    <section class="wrap section" id="counti">
+      <div class="band rv">
+        <div class="motes" aria-hidden="true"></div>
+        <div class="band-copy">
+          <p class="eyebrow">Counti</p>
+          <h2>Dein Assistent,<br><span class="grad">direkt im Launcher.</span></h2>
+          <p class="lede">Counti kennt deine Instanzen, sucht live auf Modrinth, liest deine Logs und erklärt Abstürze. Änderungen schlägt er vor – du bestätigst jede einzeln.</p>
+          <div class="cta-row"><a class="btn btn-primary" href="#download">Counter holen <span class="arr">→</span></a><span class="price">kostenlos</span></div>
+        </div>
+        <div class="band-shot"><img src="assets/shots/chat.webp" width="1800" height="1125" alt="Counti im Chat" loading="lazy"></div>
+        <div class="band-chips" role="list">
+          <span role="listitem">Mods finden & installieren</span>
+          <span role="listitem">Modpacks bauen</span>
+          <span role="listitem">Crash-Logs lesen</span>
+          <span role="listitem">Counter-Mod aktualisieren</span>
+          <span role="listitem">Updates erklären</span>
+          <span role="listitem">Einstellungen vorschlagen</span>
+        </div>
       </div>
     </section>
 
-    <section class="split-section section-shell section-block" id="account">
-      <div class="split-art reveal"><div class="login-card"><div class="login-logo"><img src="assets/counter-icon.png" alt="" width="48" height="48"></div><span class="tiny-label">ANMELDUNG</span><h3>Microsoft-Konto<br>verbinden.</h3><p>Der Launcher öffnet den offiziellen Microsoft-Gerätecode-Flow in deinem Browser.</p><div class="login-code"><span>ABCD</span><span>EFGH</span></div><small>microsoft.com/devicelogin</small><div class="login-check">✓ Login bereit für Minecraft Services</div></div></div>
-      <div class="split-copy reveal reveal-delay"><p class="eyebrow">Anmeldung</p><h2>Dein Microsoft-Konto.<br><em>Kein Umweg.</em></h2><p>Counter nutzt den offiziellen Gerätecode-Flow. Du meldest dich bei Microsoft an, nicht bei einem zusätzlichen Counter-Konto.</p><div class="check-list"><div><span>✓</span><p><strong>Offizieller Login</strong><br>Microsoft, Xbox Live und Minecraft Services.</p></div><div><span>✓</span><p><strong>Lokal gespeichert</strong><br>Sessions werden vom Betriebssystem geschützt.</p></div><div><span>!</span><p><strong>Einmalig nötig</strong><br>Die App-ID muss für Minecraft Services freigegeben sein.</p></div></div></div>
-    </section>
-
-    <section class="requirements-section section-shell section-block">
-      <div class="section-heading centered reveal"><p class="eyebrow">Aktuell unterstützt</p><h2>Das brauchst du.</h2><p>Der erste öffentliche Build ist für Windows. Weitere Plattformen kommen erst, wenn die Builds zuverlässig sind.</p></div>
-      <div class="requirements-grid">
-        <div class="requirement reveal"><span class="requirement-number">01</span><strong>Windows 10/11</strong><span>Aktueller Installer als Windows-Setup</span></div>
-        <div class="requirement reveal"><span class="requirement-number">02</span><strong>Minecraft Java</strong><span>Ein Microsoft-Konto mit Minecraft-Besitz</span></div>
-        <div class="requirement reveal"><span class="requirement-number">03</span><strong>Internet</strong><span>Für Login, Modrinth und Updates</span></div>
-        <div class="requirement reveal"><span class="requirement-number">04</span><strong>Neugier</strong><span>Der Rest gehört in deine Instanz</span></div>
+    <!-- FARBEN -->
+    <section class="wrap section colors" id="farben">
+      <div class="head rv">
+        <p class="eyebrow">Design</p>
+        <h2>Deine Farben.<br><span class="grad">Probier es aus.</span></h2>
+        <p class="lede">Akzentfarbe, Hintergrund, Glas und Ecken stellst du selbst ein. Klick eine Farbe – diese Seite ändert sich mit.</p>
+        <div class="swatches" id="swatches" role="radiogroup" aria-label="Akzentfarbe">
+          <button class="sw on" data-c="#9d5cff" data-img="home" aria-label="Violett" style="--c:#9d5cff"></button>
+          <button class="sw" data-c="#34d399" data-img="home-green" aria-label="Grün" style="--c:#34d399"></button>
+          <button class="sw" data-c="#ff8a3d" data-img="home-orange" aria-label="Orange" style="--c:#ff8a3d"></button>
+          <button class="sw" data-c="#ff5fa2" data-img="home-pink" aria-label="Pink" style="--c:#ff5fa2"></button>
+        </div>
+      </div>
+      <div class="stage wide rv d2" id="colorstage">
+        <img class="cs on" data-n="home" src="assets/shots/home.webp" width="1800" height="1125" alt="Counter in Violett" loading="lazy">
+        <img class="cs" data-n="home-green" src="assets/shots/home-green.webp" width="1800" height="1125" alt="Counter in Grün" loading="lazy">
+        <img class="cs" data-n="home-orange" src="assets/shots/home-orange.webp" width="1800" height="1125" alt="Counter in Orange" loading="lazy">
+        <img class="cs" data-n="home-pink" src="assets/shots/home-pink.webp" width="1800" height="1125" alt="Counter in Pink" loading="lazy">
       </div>
     </section>
 
-    <section class="community-banner section-shell reveal" id="community">
-      <div><p class="eyebrow">Counter Multiplayer</p><h2>Server und<br><em>Community.</em></h2><p>Der Bereich ist vorbereitet. Serveradresse und Discord kommen hier hinein, sobald sie öffentlich sind.</p></div>
-      <div class="community-actions"><div class="server-address"><span class="status-dot"></span><span data-config-text="server">Serveradresse folgt</span><button class="copy-server" type="button" aria-label="Serveradresse kopieren">⧉</button></div><a class="button button-white config-link" data-config-link="discord" href="#community">Discord öffnen <span>↗</span></a></div>
-    </section>
-
-    <section class="faq-section section-shell section-block" id="faq">
-      <div class="section-heading reveal"><p class="eyebrow">FAQ</p><h2>Die kurzen<br><em>Antworten.</em></h2></div>
-      <div class="faq-list">
-        <details class="faq-item reveal" open><summary>Ist Counter kostenlos? <span>+</span></summary><p>Der Launcher wird als eigenes Projekt veröffentlicht. Preis- und Lizenzdetails werden mit dem ersten öffentlichen Release festgelegt — hier wird nichts behauptet, was noch nicht entschieden ist.</p></details>
-        <details class="faq-item reveal"><summary>Kann ich meine bestehenden Instanzen importieren? <span>+</span></summary><p>Ja. Der Launcher enthält Importer für gängige Launcher-Strukturen. Prüfe beim Wechsel trotzdem deine Welten und Backups, bevor du alte Installationen entfernst.</p></details>
-        <details class="faq-item reveal"><summary>Warum brauche ich eine Microsoft-Anmeldung? <span>+</span></summary><p>Minecraft Java nutzt heute Microsoft-Konten. Counter reicht die Anmeldung über den offiziellen Gerätecode-Flow weiter und erstellt keinen eigenen Account.</p></details>
-        <details class="faq-item reveal"><summary>Wann gibt es macOS und Linux? <span>+</span></summary><p>Die Release-Pipeline ist aktuell auf Windows ausgerichtet. macOS/Linux bleiben auf der Checkliste, bis Builds und Tests für diese Plattformen zuverlässig stehen.</p></details>
+    <!-- IMPORT -->
+    <section class="wrap section">
+      <div class="band band-alt rv">
+        <div class="motes" aria-hidden="true"></div>
+        <div class="band-copy">
+          <p class="eyebrow">Umstieg</p>
+          <h2>Nichts verlieren,<br><span class="grad">einfach wechseln.</span></h2>
+          <p class="lede">Zu jedem Launcher zeigt Counter dir Schritt für Schritt, was du exportieren musst. Danach siehst du sofort, was angekommen ist: Mods, Einstellungen, Serverliste, Ressourcenpakete und Shader.</p>
+        </div>
+        <div class="band-shot"><img src="assets/shots/import.webp" width="1800" height="875" alt="Import-Anleitung im Launcher" loading="lazy"></div>
+        <div class="band-chips" role="list">
+          <span role="listitem">NoRiskClient</span><span role="listitem">Modrinth App</span><span role="listitem">CurseForge</span>
+          <span role="listitem">Prism / MultiMC</span><span role="listitem">Lunar Client</span><span role="listitem">Feather</span><span role="listitem">Minecraft Launcher</span>
+        </div>
       </div>
     </section>
 
-    <section class="download-section section-shell section-block" id="downloads">
-      <div class="download-panel reveal"><div><p class="eyebrow">Counter Launcher</p><h2>Einmal laden.<br><em>Dann spielen.</em></h2><p>Der Windows-Installer liegt im GitHub Release. Updates kommen später direkt über den Launcher.</p></div><div class="download-actions"><a class="button button-primary config-link" data-config-link="download" href="#downloads">Windows-Installer <span>↗</span></a><a class="text-link config-link" data-config-link="repo" href="#downloads">GitHub-Repository <span>→</span></a></div></div>
+    <!-- SICHERHEIT -->
+    <section class="wrap section" id="sicherheit">
+      <div class="head rv">
+        <p class="eyebrow">Sicherheit & Datenschutz</p>
+        <h2>Offen gesagt,<br><span class="grad">was Counter macht.</span></h2>
+      </div>
+      <div class="cards rv">
+        <article class="card"><h3>Login im Browser</h3><p>Die Microsoft-Anmeldung läuft auf <code>login.microsoftonline.com</code>. Counter fragt nie nach deinem Passwort.</p></article>
+        <article class="card"><h3>Tokens bleiben lokal</h3><p>Deine Anmelde-Tokens liegen verschlüsselt auf deinem PC (Windows-Schutz DPAPI) und gehen nie an Counter-Server.</p></article>
+        <article class="card"><h3>Quellcode einsehbar</h3><p>Du kannst auf GitHub nachlesen, was der Launcher tut. Installer werden automatisch dort gebaut und veröffentlicht.</p></article>
+        <article class="card"><h3>Counti ehrlich erklärt</h3><p>Deine Fragen an Counti gehen über den Counter-Server an einen KI-Anbieter. Dein Konto und deine Tokens sind nie dabei.</p></article>
+      </div>
+    </section>
+
+    <!-- DOWNLOAD -->
+    <section class="wrap section" id="download">
+      <div class="band final rv">
+        <div class="motes" aria-hidden="true"></div>
+        <p class="eyebrow">Kostenlos, in drei Minuten drin</p>
+        <h2>Hol dir <span class="grad">Counter.</span></h2>
+        <p class="lede">Einmal installieren, dann spielen. Updates holt sich der Launcher von selbst.</p>
+        <div class="cta center">
+          <a class="btn btn-primary btn-lg" href="https://github.com/HckrJT/counter-launcher/releases/latest" data-dl rel="noopener"><span data-dl-label>Für Windows herunterladen</span><span class="arr">↓</span></a>
+        </div>
+        <p class="micro center"><span data-version>Neueste Version</span> · <span data-size>Windows 10/11</span> · <span data-date></span></p>
+        <ol class="steps">
+          <li><b>1</b><span>Installer laden und starten. Bei der SmartScreen-Warnung auf „Weitere Informationen“ und „Trotzdem ausführen“ klicken (der Installer ist noch nicht signiert).</span></li>
+          <li><b>2</b><span>Unter <em>Konten</em> auf „Mit Microsoft anmelden“ klicken.</span></li>
+          <li><b>3</b><span>Eine Instanz anlegen oder unter <em>Importieren</em> deinen alten Launcher übernehmen.</span></li>
+        </ol>
+        <p class="micro center">Nur Windows, andere Systeme gibt es noch nicht.</p>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="wrap section narrow" id="faq">
+      <div class="head rv"><p class="eyebrow">Fragen?</p><h2><span class="grad">Antworten.</span></h2></div>
+      <div class="faq rv">
+        <details><summary>Ist Counter kostenlos?<i>+</i></summary><p>Ja. Launcher, Counti und Counter-Mod kosten nichts.</p></details>
+        <details><summary>Brauche ich einen Minecraft-Account?<i>+</i></summary><p>Ja, für Online-Server meldest du dich mit deinem Microsoft-Konto an. Ohne Konto gibt es einen Offline-Modus zum Testen.</p></details>
+        <details><summary>Welche Versionen und Loader gehen?<i>+</i></summary><p>Fabric, Quilt, NeoForge und Forge sowie Vanilla. Jede Instanz hält ihre Version, Mods und Welten getrennt. Der Counter-Mod läuft auf Fabric.</p></details>
+        <details><summary>Kann ich meinen alten Launcher übernehmen?<i>+</i></summary><p>Ja. Unter „Importieren“ gibt es Anleitungen für NoRiskClient, Modrinth App, CurseForge, Prism/MultiMC, Lunar, Feather und den offiziellen Launcher.</p></details>
+        <details><summary>Läuft das auch auf Mac und Linux?<i>+</i></summary><p>Noch nicht, Counter gibt es nur für Windows.</p></details>
+        <details><summary>Wo melde ich Fehler?<i>+</i></summary><p>Auf der <a href="https://github.com/HckrJT/counter-launcher/issues">Issues-Seite</a> bei GitHub. Sicherheitslücken bitte privat, wie in <a href="https://github.com/HckrJT/counter-launcher/blob/main/SECURITY.md">SECURITY.md</a> beschrieben.</p></details>
+      </div>
     </section>
   </main>
 
-  <footer class="site-footer section-shell">
-    <a class="brand" href="#top"><img src="assets/counter-icon.png" alt="" width="34" height="34"><span>COUNTER</span></a>
-    <p>Ein Launcher. Viele Wege zu spielen.</p>
-    <div><a href="#features">Features</a><a href="#faq">FAQ</a><a href="https://github.com/HckrJT/counter-launcher">GitHub</a></div>
-    <small>© <span id="year"></span> Counter · Kein offizieller Mojang/Microsoft-Dienst.</small>
+  <footer class="wrap foot">
+    <a class="brand" href="#top"><img src="assets/counter-icon.png" alt="" width="30" height="30"><span>COUNTER</span></a>
+    <p>Minecraft, gemacht für dich.</p>
+    <div class="links"><a href="#funktionen">Funktionen</a><a href="#sicherheit">Sicherheit</a><a href="https://github.com/HckrJT/counter-launcher">GitHub</a><a href="https://github.com/HckrJT/counter-launcher/blob/main/LICENSE">Lizenz</a></div>
+    <small>© <span id="year"></span> Counter · Kein offizielles Minecraft-Produkt, nicht mit Mojang oder Microsoft verbunden.</small>
   </footer>
 
-  <div class="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=3"></script>
+  <script src="app.js?v=4"></script>
 </body>
 </html>

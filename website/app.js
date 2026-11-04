@@ -1,147 +1,131 @@
-/*
- * Fill these values after the public GitHub repository, release, server and
- * community are ready. Empty values intentionally keep the related CTA local.
- */
-const COUNTER_CONFIG = {
-  download: 'https://github.com/HckrJT/counter-launcher/releases/latest',
-  repo: 'https://github.com/HckrJT/counter-launcher',
-  discord: '',
-  server: '',
-};
+// Counter website: pixel sky, scroll reveal, tilt, feature tabs, colour picker, live download info from GitHub.
+(() => {
+  const REPO = 'HckrJT/counter-launcher';
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const $ = (s, el = document) => el.querySelector(s);
+  const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 
-const toast = document.querySelector('.toast');
-let toastTimer;
-function showToast(message) {
-  toast.textContent = message;
-  toast.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => toast.classList.remove('show'), 4200);
-}
+  document.getElementById('year').textContent = new Date().getFullYear();
 
-function configured(key) {
-  return typeof COUNTER_CONFIG[key] === 'string' && COUNTER_CONFIG[key].trim().length > 0;
-}
+  // ---- nav shadow after scrolling
+  const nav = $('#nav');
+  const onScroll = () => nav.classList.toggle('scrolled', scrollY > 24);
+  addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
 
-document.querySelectorAll('[data-config-link]').forEach((link) => {
-  const key = link.dataset.configLink;
-  if (configured(key)) {
-    link.href = COUNTER_CONFIG[key];
-    link.target = '_blank';
-    link.rel = 'noreferrer';
-    return;
+  // ---- scroll reveal + count-up
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      if (!e.isIntersecting) continue;
+      e.target.classList.add('in');
+      io.unobserve(e.target);
+      $$('[data-count]', e.target).forEach(countUp);
+    }
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  $$('.rv').forEach((el) => io.observe(el));
+  function countUp(el) {
+    const to = Number(el.dataset.count);
+    if (reduce || !to) return;
+    const t0 = performance.now();
+    const step = (t) => {
+      const p = Math.min(1, (t - t0) / 1100);
+      el.textContent = Math.round(to * (1 - Math.pow(1 - p, 3)));
+      if (p < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
   }
-  link.addEventListener('click', (event) => {
-    event.preventDefault();
-    showToast('Dieser Link wird nach dem öffentlichen Release in website/app.js eingetragen.');
+
+  // ---- floating motes in the bands
+  $$('.motes').forEach((box) => {
+    for (let i = 0; i < 18; i++) {
+      const m = document.createElement('i');
+      m.style.cssText = `left:${Math.random() * 100}%;--s:${3 + Math.floor(Math.random() * 4)}px;--d:${10 + Math.random() * 9}s;--dl:${-Math.random() * 14}s;--x:${(Math.random() - 0.5) * 60}px`;
+      box.append(m);
+    }
   });
-});
 
-document.querySelectorAll('[data-config-text]').forEach((element) => {
-  const key = element.dataset.configText;
-  if (configured(key)) element.textContent = COUNTER_CONFIG[key];
-});
-
-document.querySelector('.copy-server')?.addEventListener('click', async () => {
-  if (!configured('server')) {
-    showToast('Die Serveradresse ist noch nicht veröffentlicht.');
-    return;
+  // ---- hero tilt that follows the mouse
+  const tilt = $('[data-tilt]');
+  if (tilt && !reduce && matchMedia('(hover: hover)').matches) {
+    const shot = $('.shot', tilt);
+    addEventListener('pointermove', (e) => {
+      const r = tilt.getBoundingClientRect();
+      if (r.bottom < 0 || r.top > innerHeight) return;
+      const x = (e.clientX / innerWidth - 0.5) * 2, y = (e.clientY / innerHeight - 0.5) * 2;
+      shot.style.transform = `rotateY(${-9 + x * 5}deg) rotateX(${4 - y * 4}deg)`;
+    }, { passive: true });
   }
-  try {
-    await navigator.clipboard.writeText(COUNTER_CONFIG.server);
-    showToast('Serveradresse kopiert.');
-  } catch {
-    showToast(`Server: ${COUNTER_CONFIG.server}`);
+
+  // ---- feature tabs with autoplay
+  const tabs = $('#tabs');
+  const tabBtns = $$('.tab', tabs), slides = $$('.slide', tabs);
+  const DUR = 7000;
+  let cur = 0, timer = null;
+  tabs.style.setProperty('--dur', DUR + 'ms');
+  function show(i) {
+    cur = i;
+    tabBtns.forEach((b, n) => {
+      b.classList.toggle('on', n === i);
+      b.setAttribute('aria-selected', n === i);
+      if (n === i) { const bar = $('.bar', b); bar.style.animation = 'none'; void bar.offsetWidth; bar.style.animation = ''; }
+    });
+    slides.forEach((s, n) => s.classList.toggle('on', n === i));
+    schedule();
   }
-});
-
-document.querySelector('#year').textContent = new Date().getFullYear();
-
-const root = document.documentElement;
-const glow = document.querySelector('.cursor-glow');
-const ring = document.querySelector('.cursor-ring');
-const particleCanvas = document.querySelector('#particle-field');
-const particleContext = particleCanvas?.getContext('2d');
-let pointerX = innerWidth / 2;
-let pointerY = innerHeight / 2;
-let glowX = pointerX;
-let glowY = pointerY;
-const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-function resizeParticles() {
-  if (!particleCanvas) return;
-  const scale = Math.min(devicePixelRatio || 1, 2);
-  particleCanvas.width = innerWidth * scale;
-  particleCanvas.height = innerHeight * scale;
-  particleContext.setTransform(scale, 0, 0, scale, 0, 0);
-}
-
-const particles = Array.from({ length: 48 }, () => ({
-  x: Math.random() * innerWidth, y: Math.random() * innerHeight,
-  radius: .5 + Math.random() * 1.5, speed: .04 + Math.random() * .16,
-  drift: Math.random() * 6.28, alpha: .12 + Math.random() * .28,
-}));
-
-function drawParticles(time = 0) {
-  if (!particleContext || prefersReducedMotion) return;
-  particleContext.clearRect(0, 0, innerWidth, innerHeight);
-  const accent = getComputedStyle(document.documentElement).getPropertyValue('--purple').trim() || '#a978ff';
-  particleContext.fillStyle = accent;
-  for (const particle of particles) {
-    particle.y -= particle.speed;
-    if (particle.y < -10) { particle.y = innerHeight + 10; particle.x = Math.random() * innerWidth; }
-    particleContext.globalAlpha = particle.alpha + Math.sin(time / 900 + particle.drift) * .08;
-    particleContext.beginPath();
-    particleContext.arc(particle.x + Math.sin(time / 2100 + particle.drift) * 10, particle.y, particle.radius, 0, Math.PI * 2);
-    particleContext.fill();
+  function schedule() {
+    clearTimeout(timer);
+    if (reduce || tabs.classList.contains('paused')) return;
+    timer = setTimeout(() => show((cur + 1) % tabBtns.length), DUR);
   }
-  requestAnimationFrame(drawParticles);
-}
+  tabBtns.forEach((b, i) => b.addEventListener('click', () => show(i)));
+  tabs.addEventListener('pointerenter', () => { tabs.classList.add('paused'); clearTimeout(timer); });
+  tabs.addEventListener('pointerleave', () => { tabs.classList.remove('paused'); show(cur); });
+  new IntersectionObserver((e) => { if (e[0].isIntersecting) schedule(); else clearTimeout(timer); }).observe(tabs);
 
-if (!prefersReducedMotion) {
-  window.addEventListener('resize', resizeParticles);
-  resizeParticles();
-  requestAnimationFrame(drawParticles);
-  window.addEventListener('pointermove', (event) => {
-    pointerX = event.clientX;
-    pointerY = event.clientY;
-    root.style.setProperty('--mouse-x', `${pointerX}px`);
-    root.style.setProperty('--mouse-y', `${pointerY}px`);
-    document.body.classList.add('cursor-active');
-    const target = event.target.closest('a, button, .feature-card, .game-preview');
-    document.body.classList.toggle('cursor-hover', !!target);
-  });
-  const follow = () => {
-    glowX += (pointerX - glowX) * .12;
-    glowY += (pointerY - glowY) * .12;
-    if (glow) glow.style.left = `${glowX}px`;
-    if (glow) glow.style.top = `${glowY}px`;
-    if (ring) { ring.style.left = `${pointerX}px`; ring.style.top = `${pointerY}px`; }
-    requestAnimationFrame(follow);
-  };
-  follow();
-}
+  // ---- module chips of the Counter mod (examples)
+  const mods = ['FPS', 'Ping', 'Koordinaten', 'Uptime', 'Leben', 'Hunger', 'Rüstung', 'Effekte', 'Reichweite', 'Nether-Koordinaten', 'Wetter', 'Sichtweite', 'FOV', 'Java & CPU', 'Gelaufen', 'Tetris', 'Pong'];
+  $('#modchips').append(...mods.map((m) => Object.assign(document.createElement('span'), { textContent: m })));
 
-document.querySelectorAll('[data-tilt]').forEach((card) => {
-  if (prefersReducedMotion) return;
-  card.addEventListener('pointermove', (event) => {
-    const bounds = card.getBoundingClientRect();
-    const x = (event.clientX - bounds.left) / bounds.width - .5;
-    const y = (event.clientY - bounds.top) / bounds.height - .5;
-    card.style.transform = `perspective(1200px) rotateX(${y * -3}deg) rotateY(${x * 4}deg)`;
-  });
-  card.addEventListener('pointerleave', () => { card.style.transform = ''; });
-});
+  // ---- accent colour: recolours the whole page and swaps the launcher screenshot
+  const root = document.documentElement;
+  $$('#swatches .sw').forEach((b) => b.addEventListener('click', () => {
+    $$('#swatches .sw').forEach((x) => x.classList.toggle('on', x === b));
+    root.style.setProperty('--accent', b.dataset.c);
+    $$('#colorstage .cs').forEach((img) => img.classList.toggle('on', img.dataset.n === b.dataset.img));
+  }));
 
-const atmosphere = document.querySelector('.hero-atmosphere');
-if (atmosphere && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-  const count = 18;
-  for (let index = 0; index < count; index += 1) {
-    const star = document.createElement('b');
-    star.className = 'hero-star';
-    star.style.setProperty('--x', `${Math.random() * 100}%`);
-    star.style.setProperty('--y', `${Math.random() * 100}%`);
-    star.style.setProperty('--delay', `${Math.random() * 8}s`);
-    star.style.setProperty('--size', `${1 + Math.random() * 2.5}px`);
-    atmosphere.append(star);
+  // ---- pixel sky (stars + a few drifting squares)
+  const cv = $('#sky'), g = cv.getContext('2d');
+  let W = 0, H = 0, stars = [];
+  function size() {
+    W = cv.width = innerWidth; H = cv.height = innerHeight;
+    stars = Array.from({ length: Math.round(W * H / 9000) }, () => ({ x: Math.random() * W, y: Math.random() * H, s: Math.random() < 0.15 ? 3 : 2, a: Math.random(), v: 0.004 + Math.random() * 0.012 }));
   }
-}
+  size();
+  addEventListener('resize', size);
+  function sky() {
+    g.clearRect(0, 0, W, H);
+    for (const s of stars) {
+      s.a += s.v;
+      g.globalAlpha = 0.25 + 0.55 * Math.abs(Math.sin(s.a * 3));
+      g.fillStyle = '#e8e2ff';
+      g.fillRect(Math.round(s.x), Math.round(s.y), s.s, s.s);
+    }
+    g.globalAlpha = 1;
+    if (!reduce) requestAnimationFrame(sky);
+  }
+  sky();
+
+  // ---- download button and version info from the latest GitHub release
+  const fmtSize = (b) => `${Math.round(b / 1048576)} MB`;
+  fetch(`https://api.github.com/repos/${REPO}/releases/latest`).then((r) => (r.ok ? r.json() : Promise.reject())).then((rel) => {
+    const exe = (rel.assets || []).find((a) => /Setup.*\.exe$/i.test(a.name));
+    const ver = String(rel.tag_name || '').replace(/^v/, '');
+    $$('[data-version]').forEach((el) => (el.textContent = ver ? `Version ${ver}` : 'Neueste Version'));
+    if (exe) {
+      $$('[data-size]').forEach((el) => (el.textContent = `${fmtSize(exe.size)} · Windows 10/11`));
+      $$('[data-dl]').forEach((a) => { if (a.closest('#download')) a.href = exe.browser_download_url; });
+    }
+    if (rel.published_at) $$('[data-date]').forEach((el) => (el.textContent = `veröffentlicht am ${new Date(rel.published_at).toLocaleDateString('de-DE')}`));
+  }).catch(() => {});
+})();
