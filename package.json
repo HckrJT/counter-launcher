@@ -1,7 +1,7 @@
 {
   "name": "counter-launcher",
   "productName": "Counter Launcher",
-  "version": "1.20.16",
+  "version": "1.20.17",
   "description": "Launcher for the Counter client: instances, mods from Modrinth, imports from other launchers",
   "main": "main.js",
   "author": "HckrJT & Taptup",
