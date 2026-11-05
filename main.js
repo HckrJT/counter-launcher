@@ -486,6 +486,33 @@ async function updateCounter(ids, status = () => {}) {
 }
 handle('counter:update', (ids) => updateCounter([].concat(ids), (t) => send('status', t)));
 
+/** -1 / 0 / 1 like a - b for dotted versions ("0.19.3" < "0.19.5") */
+function cmpVersion(a, b) {
+  const x = String(a).split('.').map(Number), y = String(b).split('.').map(Number);
+  for (let i = 0; i < Math.max(x.length, y.length); i++) if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) < (y[i] || 0) ? -1 : 1;
+  return 0;
+}
+/**
+ * A Counter jar names the Fabric Loader it needs ("fabricloader >=0.19.5"). An imported instance can carry an older loader
+ * pinned (NoRiskClient profiles: 0.19.3), and then Fabric refuses to start: "requires version 0.19.5 or later of Fabric
+ * Loader, but only the wrong version is present". Drop such a pin, the launcher then takes the newest loader.
+ */
+function unpinOldLoader(inst, jarFile, status) {
+  try {
+    const dep = JSON.parse(new (require('adm-zip'))(jarFile).readAsText('fabric.mod.json')).depends?.fabricloader;
+    const need = /(\d+(?:\.\d+)+)/.exec([].concat(dep || '')[0] || '');
+    const real = instanceById(inst.id);
+    const pinned = /\d+(?:\.\d+)+/.exec((real && real.loaderVersion) || '');
+    if (need && pinned && cmpVersion(pinned[0], need[1]) < 0) {
+      real.loaderVersion = '';
+      store.save();
+      status?.(`Fabric Loader ${pinned[0]} ist für Counter zu alt – nehme den neuesten`);
+    }
+  } catch {
+    // no readable metadata: leave the instance as it is
+  }
+}
+
 // ---------------------------------------------------------------- play
 async function prepareCounter(inst, status) {
   if (!inst.counter) return;
@@ -499,6 +526,7 @@ async function prepareCounter(inst, status) {
     const jar = path.basename(source);
     for (const old of fs.readdirSync(mods)) if (/^counter-client-.*\.jar$/.test(old) && old !== jar) fs.rmSync(path.join(mods, old));
     fs.copyFileSync(source, path.join(mods, jar));
+    unpinOldLoader(inst, source, status);
   }
   if (!fs.readdirSync(mods).some((f) => f.startsWith('fabric-api'))) {
     status('Fabric API …');
