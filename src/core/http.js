@@ -7,12 +7,17 @@ const UA = 'CounterLauncher/1.0 (github.com/astraxsmp)';
 
 async function getJson(url, options = {}) {
   const res = await fetch(url, { ...options, headers: { 'User-Agent': UA, Accept: 'application/json', ...(options.headers || {}) } });
-  if (!res.ok) throw new Error(`${res.status} ${res.statusText} for ${url}`);
+  if (!res.ok) {
+    const err = new Error(`${res.status} ${res.statusText} for ${url}`);
+    err.status = res.status;
+    throw err;
+  }
   return res.json();
 }
 
-async function postJson(url, body, headers = {}) {
+async function postJson(url, body, headers = {}, options = {}) {
   const res = await fetch(url, {
+    ...options,
     method: 'POST',
     headers: { 'User-Agent': UA, 'Content-Type': 'application/json', Accept: 'application/json', ...headers },
     body: JSON.stringify(body),
@@ -22,14 +27,16 @@ async function postJson(url, body, headers = {}) {
   try { data = text ? JSON.parse(text) : {}; } catch { data = { raw: text }; }
   if (!res.ok) {
     const err = new Error(`${res.status} for ${url}`);
+    err.status = res.status;
     err.data = data;
     throw err;
   }
   return data;
 }
 
-async function postForm(url, form) {
+async function postForm(url, form, options = {}) {
   const res = await fetch(url, {
+    ...options,
     method: 'POST',
     headers: { 'User-Agent': UA, 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams(form).toString(),

@@ -1035,9 +1035,9 @@ async function microsoftLogin() {
   else if (r.error === 'SECURE_STORAGE_UNAVAILABLE') toast('Die sichere Windows-Speicherung ist nicht verfügbar. Starte den Launcher neu und versuche es erneut.', true);
   else if (r.error !== 'cancelled') toast(r.error, true);
 }
-api.on('login:browser', ({ redirectUri }) => {
+api.on('login:browser', ({ redirectUri, step }) => {
   const text = document.querySelector('#modal-root .sub');
-  if (text) text.textContent = `Browser geöffnet. Rückgabe-Adresse: ${redirectUri}`;
+  if (text) text.textContent = step || `Browser geöffnet. Rückgabe-Adresse: ${redirectUri}`;
 });
 
 // ================================================================= settings

@@ -423,11 +423,25 @@ handle('account:login', async () => {
   const clientId = azureClientId();
   if (!clientId) throw new Error('NO_CLIENT_ID');
   loginCancelled = false;
-  const acc = await auth.browserLogin(clientId, (url) => shell.openExternal(url), () => loginCancelled, (url, redirectUri) => {
-    send('login:browser', { url, redirectUri });
-  });
-  addAccount(acc);
-  return acc.name;
+  let codeReceived = false;
+  try {
+    const acc = await auth.browserLogin(clientId, (url) => shell.openExternal(url), () => loginCancelled, (url, redirectUri) => {
+      send('login:browser', { url, redirectUri });
+    }, (step) => {
+      codeReceived = true;
+      send('login:browser', { step });
+    });
+    addAccount(acc);
+    return acc.name;
+  } finally {
+    // the player is still looking at the browser tab: bring the launcher back so the result (or error) is seen
+    if (codeReceived && win && !win.isDestroyed()) {
+      if (win.isMinimized()) win.restore();
+      win.show();
+      win.focus();
+      win.flashFrame(true);
+    }
+  }
 });
 handle('account:cancel', () => {
   loginCancelled = true;
