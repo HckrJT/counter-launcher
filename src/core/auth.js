@@ -242,6 +242,31 @@ const XSTS_ERRORS = {
   2148916238: 'Kinderkonto: muss von einem Erwachsenen zu einer Microsoft-Familie hinzugefügt werden.',
 };
 
+/**
+ * The profile endpoint answers 404 both for "no licence on this Microsoft account" and for "licence, but no
+ * player name yet". The licence list tells them apart, so the player knows whether they picked the wrong account.
+ */
+async function missingProfileError(mcAccess) {
+  let items = null;
+  try {
+    const ent = await step('Minecraft', () => getJson(`https://api.minecraftservices.com/entitlements/license?requestId=${crypto.randomUUID()}`, { headers: { Authorization: 'Bearer ' + mcAccess }, ...withTimeout() }));
+    items = (ent?.items || []).map((i) => String(i.name || ''));
+  } catch {
+    // licence list unavailable: fall back to the general hint below
+  }
+  const has = (re) => items?.some((n) => re.test(n));
+  if (has(/^(game|product)_minecraft$/)) {
+    return new Error('Dieses Konto besitzt Minecraft: Java Edition, hat aber noch keinen Spielernamen. Starte einmal den offiziellen Minecraft Launcher, wähle dort Java Edition und lege deinen Namen fest. Danach klappt die Anmeldung hier.');
+  }
+  if (has(/game_pass|xgp/i)) {
+    return new Error('Dieses Konto spielt über den Game Pass, hat aber noch keinen Java-Spielernamen. Starte einmal den offiziellen Minecraft Launcher (Xbox-App), öffne Java Edition und lege deinen Namen fest. Danach klappt die Anmeldung hier.');
+  }
+  if (items) {
+    return new Error('Auf diesem Microsoft-Konto ist kein Minecraft: Java Edition gekauft. Hast du im Browser das richtige Konto gewählt? Prüfe im offiziellen Minecraft Launcher, mit welcher E-Mail du dort angemeldet bist, und melde dich hier mit genau dieser an.');
+  }
+  return new Error('Dieses Konto besitzt kein Minecraft: Java Edition oder hat noch keinen Spielernamen. Prüfe, ob du im Browser das richtige Microsoft-Konto gewählt hast, und starte sonst einmal den offiziellen Minecraft Launcher und wähle dort einen Namen.');
+}
+
 async function minecraftFromMs(msAccess, refreshToken, progress = () => {}) {
   progress('Xbox-Anmeldung …');
   const xbl = await step('Xbox Live', () => postJson('https://user.auth.xboxlive.com/user/authenticate', {
@@ -276,7 +301,7 @@ async function minecraftFromMs(msAccess, refreshToken, progress = () => {}) {
   try {
     profile = await step('Minecraft', () => getJson('https://api.minecraftservices.com/minecraft/profile', { headers: { Authorization: 'Bearer ' + mc.access_token }, ...withTimeout() }));
   } catch (e) {
-    if (e.status === 404) throw new Error('Dieses Konto besitzt kein Minecraft: Java Edition oder hat noch keinen Spielernamen. Starte einmal den offiziellen Minecraft Launcher und wähle dort einen Namen (auch bei Game Pass).');
+    if (e.status === 404) throw await missingProfileError(mc.access_token);
     throw e;
   }
   if (!profile?.id) throw new Error('This account does not own Minecraft');
